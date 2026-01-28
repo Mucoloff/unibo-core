@@ -47,8 +47,8 @@ public class Region extends NamedSerializable implements RegionAccessors {
 
         this.world = (String) me.get("world");
         this.priority = (int) me.get("priority");
-        this.min = CoordUtils.toVec3i(((String) me.get("min")).split("\\|"));
-        this.max = CoordUtils.toVec3i(((String) me.get("max")).split("\\|"));
+        this.min = new Vector3i(CoordUtils.toVec3i(((String) me.get("min")).split("\\|")));
+        this.max = new Vector3i( CoordUtils.toVec3i(((String) me.get("max")).split("\\|")));
 
         try {
             // noinspection unchecked
@@ -94,8 +94,8 @@ public class Region extends NamedSerializable implements RegionAccessors {
         super.serialize(me);
         me.put("world", this.world);
         me.put("priority", this.priority);
-        me.put("min", CoordUtils.fromVec3i(this.min, Position.SEPARATOR));
-        me.put("max", CoordUtils.fromVec3i(this.max, Position.SEPARATOR));
+        me.put("min", CoordUtils.fromVec3i(Position.SEPARATOR, this.min.x, this.min.y, this.min.z));
+        me.put("max", CoordUtils.fromVec3i(Position.SEPARATOR, this.max.x, this.max.y, this.max.z));
 
         Map<String, String> flags = new HashMap<>();
         for (Flag<?> flag : this.flags.keySet()) {

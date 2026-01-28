@@ -34,15 +34,15 @@ public class Position extends ObjSerializable {
 
     public Position(final Map<String, Object> me) {
         world = String.valueOf(me.get("world"));
-        position = CoordUtils.toVec3d(String.valueOf(me.get("position")).split("\\|"));
+        position = new Vector3d(CoordUtils.toVec3d(String.valueOf(me.get("position")).split("\\|")));
         rotation = CoordUtils.toVec2f(String.valueOf(me.get("rotation")).split("\\|"));
     }
 
     @Override
     public void serialize(@NotNull Map<String, Object> me) {
         me.put("world", this.world);
-        me.put("position", CoordUtils.fromVec3d(this.position, SEPARATOR));
-        me.put("rotation", CoordUtils.fromVec2f(this.rotation, SEPARATOR));
+        me.put("position", CoordUtils.fromVec3d(SEPARATOR, this.position.x, this.position.y, this.position.z));
+        me.put("rotation", CoordUtils.fromVec2f(SEPARATOR, this.rotation));
     }
 
     @Override
@@ -52,8 +52,8 @@ public class Position extends ObjSerializable {
 
     public String serializeString() {
         return world
-                + "#" + CoordUtils.fromVec3d(position,SEPARATOR)
-                + "#" + CoordUtils.fromVec2f(rotation, SEPARATOR);
+                + "#" + CoordUtils.fromVec3d(SEPARATOR, this.position.x, this.position.y, this.position.z)
+                + "#" + CoordUtils.fromVec2f(SEPARATOR, this.rotation);
     }
 
     public static @NotNull Position deserializeString(final String value) {
@@ -67,7 +67,7 @@ public class Position extends ObjSerializable {
 
         return new Position(
                 world,
-                CoordUtils.toVec3d(parts[1].split("\\|")),
+                new Vector3d(CoordUtils.toVec3d(parts[1].split("\\|"))),
                 CoordUtils.toVec2f(parts[2].split("\\|"))
         );
     }
