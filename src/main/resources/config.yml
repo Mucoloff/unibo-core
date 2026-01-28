@@ -1,0 +1,12 @@
+
+
+bot:
+  token: "YOUR_BOT_TOKEN"
+  channelId: YOUR_CHANNEL_ID
+  discordFormat: "**%s** -> %s"
+  chatFormat: "[Discord] %s -> %s"
+
+# 📢 Messaggio broadcast globale (es. killstreak, messaggi importanti, etc.)
+broadcast:
+  format: '&#F45454ʙ&#F5694Aʀ&#F67F3Fᴏ&#F79435ᴀ&#F8AA2Aᴅ&#F9BF20ᴄ&#FAD415ᴀ&#FBEA0Bs&#FCFF00ᴛ &7%message%'
+  console: false

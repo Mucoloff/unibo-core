@@ -1,0 +1,88 @@
+no-permission: "&cYou do not have the required permission to execute this command."
+player-not-found: "&cPlayer %player% not found."
+
+heal: '&cYou have been healed! &7(&ffrom cancer&7)'
+healOther: '&cYou have healed &f%player% &7(&fthey have defeated cancer&7)'
+feed: '&cYou are full &7(&fyou have left Africa&7)'
+feedOther: '&cYou have fed &f%player%'
+
+fly:
+  disable: '&4Fly Disabled'
+  enable: '&aFly Enabled'
+vanish:
+  disable: '&4Vanish Disabled'
+  enable: '&aVanish Enabled'
+
+combat:
+  log-out: "&f%player% &chas logged out during combat!"
+  start: "&cYou are now in combat with &f%enemy%&c!"
+  end: "&cYou are no longer in combat!"
+  timer: "&cᴄᴏᴍʙᴀᴛ: %time%"
+
+gamemode:
+  set: '&dGamemode set to &f%gamemode%'
+  other: '&dGamemode set to &f%gamemode%&d for &f%player%'
+  error: '&cThis gamemode doesn''t exist'
+
+teleport:
+  not-a-player: "&cOnly players can use this command."
+  no-args: "&cYou need to enter some arguments."
+  usage-self: "&cTo teleport yourself: &f/tp <otherplayer>"
+  usage-coords: "&cTo teleport specified coords &f/tp <x> <y> <z> <world> <player>"
+  usage-others: "&cTo teleport others: &f/tp <player> <otherplayer>"
+  player-not-found: "&cPlayer '&f%player%&c' not found."
+  self-success: "&cTeleported to &f%player%&c successfully."
+  others-success: "&cTeleported &f%player_to_send%&c to &f%target%&c successfully."
+  coords-success: "&cTeleported &f%player%&c to &f%target%&c successfully."
+  all:
+    no-other-players: "&cNo other players are on right now."
+    success: "&cTeleported all &f%player_count%&c players to you."
+  here:
+    usage: "&cUsage: &f/teleporthere <player>"
+    success: "&cTeleported &f%target%&c to your location."
+
+regions:
+  pos:
+    first: "&cFirst position set to &f[%x%, %y%, %z%]&c"
+    second: "&cSecond position set to &f[%x%, %y%, %z%]&c"
+  reload: "Regions reloaded!"
+  list-header: "&cRegions:"
+  region-entry:
+    hover-text: "&cClick for &f%region% &cinfos"
+    click-command: "/rg info %region%"
+  success:
+    create: "&cRegion &f%region% &ccreated successfully! %bounds%"
+    redefine: "&cRegion &f%region% &credefined successfully!  %bounds%"
+    delete: "&cRegion &f%region% &cdeleted successfully!"
+    set-spawn: "&cSpawn point set for region &f%region%&c."
+    spawn: "&cTeleported to spawn point of region &f%region%&c."
+    reset-flag: "&f%region%&c's flags have been reset successfully!"
+  info:
+    header: "&f%region% &cinfo:"
+    flag-entry: "&c%flag%: &f%value%"
+    hover-text: "&cClick to modify &f%flag%&c"
+    click-command: "/rg flag %region% %flag% "
+  flag:
+    flag-set: "&cRegion &f%region% &cFlag &f%flag% &cset to &f%value%&c."
+    location-flag:
+      default: "&cRegion &f%region% &cFlag &f%flag% &creset to default."
+      null: "&cRegion &f%region% &cFlag &f%flag% &cset to null."
+      this: "&cRegion &f%region% &cFlag &f%flag% &cset to current location."
+  errors:
+    invalid-flag: "&cInvalid flag: &f%flag%&c"
+    region-not-found: "&cRegion &f%region% &cnot found."
+    already-exists: "&cRegion &f%region% &calready exists."
+    missing-positions: "&cYou must set both positions before."
+
+
+death-messages:
+  player-killed: "&#e74c3c{victim} &7was eliminated by &#ff8633{killer} &7🔪 &7(&c{killer_health}&7)"
+  fall-death: "&e{victim} fell from a great height! 💥"
+  drowning-death: "&b{victim} drowned! 🌊"
+  unknown-death: "&7{victim} died mysteriously! ❓"
+  end-crystal-killed: "&c{victim} was killed by {killer}&7(&c{killer_health}&7)&c using an End Crystal! 💥"
+  show-inv: "&cClick here to view %player% inventory!"
+
+join-message: "&a→ {player}"
+quit-message: "&4← {player}"
+
