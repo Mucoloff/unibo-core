@@ -8,4 +8,5 @@ authors: [ SweetyDreams_ ]
 depend:
   - LuckPerms
   - PlaceholderAPI
+  - DecentHolograms
   - packetevents

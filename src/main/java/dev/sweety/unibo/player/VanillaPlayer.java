@@ -68,8 +68,6 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
 
     private final Stats stats;
 
-    private CombatStatus combatStatus;
-
     public VanillaPlayer(final Player player, final User user, final VanillaCore plugin) {
         this.entityId = (this.player = player).getEntityId();
         this.user = user;
@@ -88,10 +86,12 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
         this.chatProcessor = new ChatProcessor(this, plugin);
         this.combatLogProcessor = new CombatLogProcessor(this, plugin);
 
+
         this.combatLogProcessor.setEnabled(stats.isCombat());
 
         this.regionName = new AtomicReference<>();
         this.lastRegionName = new AtomicReference<>();
+
         this.tpaProcessor = new TpaProcessor();
     }
 
@@ -217,5 +217,13 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
 
     public void reloadStats(Function<UUID, Stats> load) {
         stats.apply(load.apply(player.getUniqueId()));
+    }
+
+    public CombatStatus combatStatus() {
+        return this.combatLogProcessor.getCombatStatus().get();
+    }
+
+    public void combatStatus(CombatStatus combatStatus) {
+        this.combatLogProcessor.getCombatStatus().set(combatStatus);
     }
 }

@@ -67,9 +67,8 @@ public class CommandRegistry {
                 };
                 player.sendRichMessage("<yellow>Combat: " + color + status);
             } else {
-
                 CombatLogProcessor processor = plugin.playerManager().profile(player.getUniqueId()).combatLogProcessor();
-                boolean status = args[0].equalsIgnoreCase("toggle") ? !processor.isEnabled() : Boolean.parseBoolean(args[0]);
+                boolean status = args[0].equalsIgnoreCase("toggle") ? processor.isDisabled() : Boolean.parseBoolean(args[0]);
                 if (processor.inCombat()) {
                     player.sendRichMessage("<red>You cannot change combat status while in combat!");
                     return;

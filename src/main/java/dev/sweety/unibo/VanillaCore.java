@@ -12,6 +12,7 @@ import dev.sweety.unibo.api.VanillaAPI;
 import dev.sweety.unibo.api.flag.FlagManager;
 import dev.sweety.unibo.api.menu.MenuListener;
 import dev.sweety.unibo.api.papi.StatsExpansion;
+import dev.sweety.unibo.feature.GraveListener;
 import dev.sweety.unibo.feature.discord.DiscordBot;
 import dev.sweety.unibo.feature.essential.CommandRegistry;
 import dev.sweety.unibo.feature.info.leaderboard.Leaderboard;
@@ -84,7 +85,8 @@ public class VanillaCore implements VanillaCoreAccessors {
                 new RegionBukkitListener(this),
                 new RegionCreate(this),
                 new MenuListener(),
-                new Views.Handler()
+                new Views.Handler(),
+                new GraveListener()
         );
 
         this.commandRegistry.register();

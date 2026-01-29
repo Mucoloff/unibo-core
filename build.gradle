@@ -35,6 +35,7 @@ dependencies {
     compileOnly 'com.github.retrooper:packetevents-spigot:2.11.2'
     compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly 'net.luckperms:api:5.4'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.9.9'
 
     implementation("net.dv8tion:JDA:6.3.0")
 

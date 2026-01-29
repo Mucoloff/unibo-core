@@ -17,20 +17,18 @@ import dev.sweety.unibo.player.processors.AttackProcessor;
 import dev.sweety.unibo.player.processors.DamageProcessor;
 import dev.sweety.unibo.utils.McUtils;
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Getter
 public class CombatLogProcessor extends Processor {
@@ -39,8 +37,9 @@ public class CombatLogProcessor extends Processor {
 
     private final int maxCooldown;
     private final AtomicLong cooldown = new AtomicLong(-1);
-    private final AtomicBoolean combat = new AtomicBoolean(false);
     private final Runnable runnable;
+
+    private final AtomicReference<CombatStatus> combatStatus = new AtomicReference<>(CombatStatus.IDLE);
 
     private final ProfileThread profileThread;
     private final PlayerManager playerManager;
@@ -48,10 +47,7 @@ public class CombatLogProcessor extends Processor {
 
     private CompletableFuture<?> task = null;
 
-    private boolean enabled = true;
-
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
         player.combatStatus(enabled ? CombatStatus.IDLE : CombatStatus.DISABLED);
     }
 
@@ -90,7 +86,7 @@ public class CombatLogProcessor extends Processor {
         switch (packet.getWrapper()) {
             case WrapperPlayClientInteractEntity wrap -> {
                 if (this.attackProcessor.isAttack()) {
-                    if (!enabled) {
+                    if (isDisabled()) {
                         self.sendRichMessage("<red>You have disabled PvP!");
                         packet.cancel();
                         return;
@@ -98,7 +94,7 @@ public class CombatLogProcessor extends Processor {
 
                     final VanillaPlayer profile = this.playerManager.profile(lastPlayerHit);
                     if (profile == null) return;
-                    if (!profile.combatLogProcessor().enabled) {
+                    if (profile.combatLogProcessor().isDisabled()) {
                         self.sendRichMessage("<red>" + lastPlayerHit.getName() + " has disabled PvP!");
                         packet.cancel();
                         return;
@@ -111,7 +107,7 @@ public class CombatLogProcessor extends Processor {
             case WrapperPlayServerDamageEvent wrap -> {
                 if (!this.damageProcessor.isPlayer()) return;
                 if (!(damager instanceof Player attacker)) return;
-                if (!enabled) {
+                if (isDisabled()) {
                     attacker.sendRichMessage("<red>" + self.getName() + " has disabled PvP!");
                     packet.cancel();
                     return;
@@ -217,8 +213,8 @@ public class CombatLogProcessor extends Processor {
             p.sendActionBar(start);
         }
 
-        this.combat.set(true);
         this.player.combatStatus(CombatStatus.ENGAGED);
+
         final long now = System.currentTimeMillis();
         this.cooldown.set(now);
 
@@ -234,7 +230,6 @@ public class CombatLogProcessor extends Processor {
         p.sendMessage(end);
         p.sendActionBar(end);
 
-        this.combat.set(false);
         this.player.combatStatus(CombatStatus.IDLE);
 
         this.cooldown.set(-1);
@@ -246,12 +241,16 @@ public class CombatLogProcessor extends Processor {
         this.task = null;
     }
 
+    public boolean isDisabled() {
+        return this.combatStatus.get().equals(CombatStatus.DISABLED);
+    }
+
     public boolean notCombat() {
-        return !this.combat.get();
+        return this.combatStatus.get().equals(CombatStatus.IDLE);
     }
 
     public boolean inCombat() {
-        return this.combat.get();
+        return this.combatStatus.get().equals(CombatStatus.ENGAGED);
     }
 
 }

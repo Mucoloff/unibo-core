@@ -93,7 +93,10 @@ public class PlayerManager implements Listener, PacketListener {
     }
 
     public void shutdown() {
-        this.foreachProfile(VanillaPlayer::shutdown);
+        this.foreachProfile(vanillaPlayer -> {
+            vanillaPlayer.combatLogProcessor().clear();
+            vanillaPlayer.shutdown();
+        });
     }
 
     public void writePacket(final PacketWrapper<?> wrap) {
