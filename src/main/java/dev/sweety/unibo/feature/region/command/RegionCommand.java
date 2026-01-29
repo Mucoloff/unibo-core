@@ -150,7 +150,7 @@ public class RegionCommand extends CommandWrapper {
                             return;
                         }
 
-                        rg.setFlagStatus(FlagType.SPAWN, Position.asPosition(player.getLocation()));
+                        rg.setFlagStatus(FlagType.SPAWN, Position.fromBukkitLocation(player.getLocation()));
                         player.sendMessage(Language.REGIONS_SUCCESS_SET__SPAWN.component("%region%", regionName));
                         regionManager.add(rg);
                     }
@@ -199,7 +199,7 @@ public class RegionCommand extends CommandWrapper {
                     }
 
                     if (flag instanceof PositionFlag loc) {
-                        Position position = Position.asPosition(player.getLocation());
+                        Position position = Position.fromBukkitLocation(player.getLocation());
                         rg.setFlagStatus(loc, position);
                         player.sendMessage(Language.REGIONS_FLAG_FLAG__SET.component("%region%", regionName, "%flag%", flag.getName(), "%value%", position.serializeString()));
                     }
@@ -224,7 +224,7 @@ public class RegionCommand extends CommandWrapper {
 
                 if (args[0].equals("flag")) {
                     if (flag instanceof PositionFlag loc) {
-                        Position position = Position.asPosition(player.getLocation());
+                        Position position = Position.fromBukkitLocation(player.getLocation());
                         switch (args[3]) {
                             case "default" -> rg.resetFlagStatus(loc);
                             case "null" -> rg.setFlagStatus(loc, Position.EMPTY);

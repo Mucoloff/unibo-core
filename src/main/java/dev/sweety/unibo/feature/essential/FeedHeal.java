@@ -2,6 +2,7 @@ package dev.sweety.unibo.feature.essential;
 
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
+import dev.sweety.unibo.feature.CommandRegistry;
 import dev.sweety.unibo.utils.PlayerUtils;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;

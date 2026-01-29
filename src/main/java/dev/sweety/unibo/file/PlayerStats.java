@@ -9,10 +9,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
-public class PlayerElo extends BukkitFile {
+public class PlayerStats extends BukkitFile {
 
-    public PlayerElo(final JavaPlugin resource) {
-        super(resource, "player-elo.yml", "data");
+    public PlayerStats(final JavaPlugin resource) {
+        super(resource, "player-stats.yml", "data");
     }
 
     public void save(final UUID uuid, final Stats stats) {

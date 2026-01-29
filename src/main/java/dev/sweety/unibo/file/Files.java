@@ -8,11 +8,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Files {
 
     public static LanguageYml LANGUAGE;
-    public static PlayerElo PLAYER_ELO;
+    public static PlayerStats PLAYER_ELO;
+    public static GravePositions GRAVES;
 
     public void init(final JavaPlugin resource) {
         LANGUAGE = new LanguageYml(resource);
-        PLAYER_ELO = new PlayerElo(resource);
+        PLAYER_ELO = new PlayerStats(resource);
+        GRAVES = new GravePositions(resource);
     }
 
 }

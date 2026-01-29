@@ -90,7 +90,7 @@ public class RegionProcessor extends Processor {
     }
 
     private void handleMovement(final Packet packet) {
-        final Vector3d position = this.positionProcessor.getPosition();
+        final Vector3d position = this.positionProcessor.position();
 
         if (position == null) return;
         if (!(packet.isMovement() || !packet.is(PacketType.PacketServer.PLAYER_POSITION_AND_LOOK))) return;
@@ -139,11 +139,11 @@ public class RegionProcessor extends Processor {
         }
 
         if (fromRegion.is(currentRegion)) {
-            new RegionMoveEvent(bukkitPlayer, fromRegion, position, this.positionProcessor.getYaw(), this.positionProcessor.getPitch()).callEvent();
+            new RegionMoveEvent(bukkitPlayer, fromRegion, position, this.positionProcessor.yaw(), this.positionProcessor.pitch()).callEvent();
             return;
         }
 
-        new RegionSwitchEvent(bukkitPlayer, currentRegion, position, this.positionProcessor.getYaw(), this.positionProcessor.getPitch(), fromRegion).callEvent();
+        new RegionSwitchEvent(bukkitPlayer, currentRegion, position, this.positionProcessor.yaw(), this.positionProcessor.pitch(), fromRegion).callEvent();
         this.player.region(currentRegion);
     }
 

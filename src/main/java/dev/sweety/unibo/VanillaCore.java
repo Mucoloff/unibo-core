@@ -13,9 +13,9 @@ import dev.sweety.unibo.api.flag.FlagManager;
 import dev.sweety.unibo.api.flag.FlagType;
 import dev.sweety.unibo.api.menu.MenuListener;
 import dev.sweety.unibo.api.papi.StatsExpansion;
-import dev.sweety.unibo.feature.GraveListener;
+import dev.sweety.unibo.feature.grave.GraveListener;
 import dev.sweety.unibo.feature.discord.DiscordBot;
-import dev.sweety.unibo.feature.essential.CommandRegistry;
+import dev.sweety.unibo.feature.CommandRegistry;
 import dev.sweety.unibo.feature.info.leaderboard.Leaderboard;
 import dev.sweety.unibo.feature.inventory.Views;
 import dev.sweety.unibo.feature.region.DefaultRegion;
@@ -33,6 +33,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+
+import static dev.sweety.unibo.file.Files.GRAVES;
 
 @RecordGetter(includeStatic = true)
 public class VanillaCore implements VanillaCoreAccessors {
@@ -96,9 +98,11 @@ public class VanillaCore implements VanillaCoreAccessors {
 
         this.discordBot.start();
 
+        GRAVES.loadData();
     }
 
     public void disable() {
+        GRAVES.saveData();
         this.discordBot.shutdown();
         this.statsExpansion.unregister();
         this.regionManager.shutdown();

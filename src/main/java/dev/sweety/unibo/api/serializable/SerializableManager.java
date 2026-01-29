@@ -85,7 +85,7 @@ public abstract class SerializableManager<T extends ObjSerializable> {
         return this.values.keySet();
     }
 
-    public T get(final String name) {
+    public T get(@Nullable String name) {
         if (ObjectUtils.isNull(name)) return null;
         final T t = this.values.get(name);
         if (t == null) logger.warn("unable to find " + this.name + ": " + name);

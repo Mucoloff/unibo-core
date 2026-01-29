@@ -166,7 +166,7 @@ public class PlayerManager implements Listener, PacketListener {
 
         if (profile == null) return;
 
-        profile.combatLogProcessor().quit();
+        profile.quit();
 
         profile.release();
     }

@@ -76,11 +76,15 @@ public class Position extends ObjSerializable {
         return "none".equals(this.world);
     }
 
-    public static @NotNull Position asPosition(Location location) {
+    public static @NotNull Position fromBukkitLocation(Location location) {
         return new Position(location.getWorld().getName(), new Vector3d(location.getX(), location.getY(), location.getZ()), new Vector2f(location.getYaw(), location.getPitch()));
     }
 
-    public @NotNull Location toLocation() {
+    public static @NotNull Position fromPELocation(final String world, final com.github.retrooper.packetevents.protocol.world.Location location) {
+        return new Position(world, location.getPosition(), new Vector2f(location.getYaw(), location.getPitch()));
+    }
+
+    public @NotNull Location toBukkitLocation() {
         final World world = Bukkit.getWorld(this.getWorld());
         final Vector3d pos = this.getPosition();
         final Vector2f rot = this.getRotation();
@@ -88,7 +92,7 @@ public class Position extends ObjSerializable {
     }
 
     public void teleport(Collection<Player> players) {
-        final Location location = toLocation();
+        final Location location = toBukkitLocation();
         players.forEach(player -> {
             if (location.getWorld() == null) {
                 location.setWorld(player.getWorld());

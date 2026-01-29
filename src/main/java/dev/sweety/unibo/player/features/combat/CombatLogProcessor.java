@@ -1,4 +1,4 @@
-package dev.sweety.unibo.player.features;
+package dev.sweety.unibo.player.features.combat;
 
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
@@ -48,7 +48,7 @@ public class CombatLogProcessor extends Processor {
     private CompletableFuture<?> task = null;
 
     public void setEnabled(boolean enabled) {
-        player.combatStatus(enabled ? CombatStatus.IDLE : CombatStatus.DISABLED);
+        this.combatStatus.set(enabled ? CombatStatus.IDLE : CombatStatus.DISABLED);
     }
 
     public CombatLogProcessor(final VanillaPlayer player, final VanillaCore plugin) {
@@ -58,6 +58,7 @@ public class CombatLogProcessor extends Processor {
         this.damageProcessor = player.damageProcessor();
         this.profileThread = player.profileThread();
         this.maxCooldown = plugin.config().getInt("combat.cooldown", 15) * 1000;
+
         this.runnable = () -> {
             if (notCombat()) {
                 this.cancel();
@@ -72,8 +73,9 @@ public class CombatLogProcessor extends Processor {
             }
 
             p.sendActionBar(Language.COMBAT_TIMER.component("%time%", String.format("%.1f", remaining / 1000d)));
-
         };
+
+        setEnabled(player.stats().isCombat());
     }
 
     @Override

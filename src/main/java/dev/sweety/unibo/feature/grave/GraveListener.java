@@ -1,20 +1,21 @@
-package dev.sweety.unibo.feature;
+package dev.sweety.unibo.feature.grave;
 
-import dev.sweety.unibo.api.menu.SimpleMenu;
+import dev.sweety.unibo.api.VanillaAPI;
 import dev.sweety.unibo.utils.ColorUtils;
 import dev.sweety.unibo.utils.McUtils;
-import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
+import eu.decentsoftware.holograms.api.holograms.HologramLine;
+import eu.decentsoftware.holograms.api.holograms.HologramPage;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.block.data.Rotatable;
-import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +27,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,22 +38,34 @@ public class GraveListener implements Listener {
 
     public static HashMap<Block, Grave> graves = new HashMap<>();
 
+    private static NamespacedKey key;
+
+    public GraveListener() {
+        key = new NamespacedKey(VanillaAPI.instance(), "grave");
+    }
+
     @EventHandler
     public void onRespawn(PlayerRespawnEvent born) {
         Player p = born.getPlayer();
         if (graves.isEmpty()) return;
         graves.forEach((block, grave) -> {
-            if (grave.player() != p) return;
+            if (!p.getUniqueId().equals(grave.uuid())) return;
 
             ItemStack paper = new ItemStack(Material.PAPER);
-            String date = new SimpleDateFormat("dd/MM hh:mm:ss").format(new Date(grave.time()));
-            ItemMeta meta = paper.getItemMeta();
-            Location location = grave.deathLocation();
-            String lore = String.format("%s\n&aDeath Time: &c%s", location(location, true), date);
-            String name = String.format("&e%s's &7Grave", p.getName());
-            meta.displayName(McUtils.component(name));
-            meta.lore(McUtils.colorList(Arrays.stream(lore.split("\n")).toList()));
-            paper.setItemMeta(meta);
+
+            paper.editMeta(meta -> {
+
+                String date = new SimpleDateFormat("dd/MM hh:mm:ss").format(new Date(grave.time()));
+                Location location = grave.deathLocation();
+                String lore = String.format("%s\n&aDeath Time: &c%s", location(location, true), date);
+                String name = String.format("&e%s's &7Grave", p.getName());
+                meta.displayName(McUtils.component(name));
+                meta.lore(McUtils.colorList(Arrays.stream(lore.split("\n")).toList()));
+
+                meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+            });
+
+
             p.getInventory().addItem(paper);
         });
     }
@@ -67,10 +81,8 @@ public class GraveListener implements Listener {
                 if (item != null) block.getWorld().dropItem(block.getLocation(), item);
             });
             graves.remove(block);
-            Hologram h = DHAPI.getHologram(grave.player().getName() + grave.time());
-            if (h != null) {
-                h.delete();
-            }
+            Hologram h = holo(grave.holoName());
+            if (h != null) h.delete();
         }
     }
 
@@ -80,7 +92,17 @@ public class GraveListener implements Listener {
 
         final List<ItemStack> drops = e.getDrops();
 
-        drops.removeIf(i -> i.displayName().contains(McUtils.component("'s &7Grave")));
+        drops.removeIf(i -> {
+            if (!i.hasItemMeta()) return false;
+
+            ItemMeta meta = i.getItemMeta();
+
+            if (meta.getPersistentDataContainer().has(key, PersistentDataType.BYTE)) {
+                return true;
+            }
+
+            return false;
+        });
 
         if (drops.isEmpty()) return;
 
@@ -106,7 +128,7 @@ public class GraveListener implements Listener {
             float yaw = victim.getLocation().getYaw();
             yaw = (yaw % 360 + 360) % 360;
             int idx = Math.floorMod(Math.round(yaw / 90f), 4);
-            org.bukkit.block.BlockFace[] faces = new org.bukkit.block.BlockFace[] {
+            org.bukkit.block.BlockFace[] faces = new org.bukkit.block.BlockFace[]{
                     org.bukkit.block.BlockFace.SOUTH,
                     org.bukkit.block.BlockFace.WEST,
                     org.bukkit.block.BlockFace.NORTH,
@@ -115,7 +137,8 @@ public class GraveListener implements Listener {
             Rotatable rot = (Rotatable) block.getBlockData();
             rot.setRotation(faces[idx]);
             block.setBlockData(rot, true);
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
 
 
         Inventory inv = Bukkit.createInventory(null, 4 * 9, Component.text(victim.getName() + "' grave"));
@@ -127,9 +150,9 @@ public class GraveListener implements Listener {
         });
 
         drops.clear();
-        long t = System.currentTimeMillis();
-        DHAPI.createHologram(victim.getName() + t, block.getLocation().add(.5, 1, .5), true, lines);
-        graves.put(block, new Grave(victim, inv, gayLocation, t));
+        Grave grave = new Grave(victim.getUniqueId(), victim.getName(), inv, gayLocation, System.currentTimeMillis());
+        create(grave.holoName(), block.getLocation().add(.5, 1, .5), lines);
+        graves.put(block, grave);
     }
 
     @EventHandler
@@ -174,15 +197,12 @@ public class GraveListener implements Listener {
             if (item != null) block.getWorld().dropItem(block.getLocation(), item);
         });
         block.setType(AIR);
-        Hologram h = DHAPI.getHologram(grave.player().getName() + grave.time());
-        if (h != null) {
-            h.delete();
-        }
+        Hologram h = holo(grave.holoName());
+        if (h != null) h.delete();
         graves.remove(block);
     }
 
     public static String location(Location location, boolean world) {
-
         return ColorUtils.color(world ? (String.format("&eWorld: &f%s\n&e[&6 %s / %s / %s &e]",
                 location.getWorld().getName(),
                 location.getBlockX(),
@@ -193,6 +213,21 @@ public class GraveListener implements Listener {
                 location.getBlockZ())));
     }
 
-    public record Grave(Player player, Inventory inventory, Location deathLocation, long time) {
+    private static Hologram holo(String name) {
+        return Hologram.getCachedHologram(name);
     }
+
+    private static void create(String name, Location location, List<String> lines) {
+        Hologram hologram = new Hologram(name, location, true);
+        HologramPage page = hologram.getPage(0);
+        if (lines != null) {
+            for (String line : lines) {
+                HologramLine hologramLine = new HologramLine(page, page.getNextLineLocation(), line);
+                page.addLine(hologramLine);
+            }
+        }
+        hologram.showAll();
+        hologram.save();
+    }
+
 }

@@ -1,4 +1,4 @@
-package dev.sweety.unibo.player.features;
+package dev.sweety.unibo.player.features.combat;
 
 public enum CombatStatus {
     DISABLED,

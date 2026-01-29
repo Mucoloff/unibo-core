@@ -16,10 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.Objects;
@@ -51,7 +48,7 @@ public class RegionBukkitListener implements Listener {
     }
 
     @EventHandler
-    public void onDeath(final PlayerDeathEvent event){
+    public void onDeath(final PlayerDeathEvent event) {
         final Player victim = event.getPlayer(), killer = victim.getKiller();
         if (killer == null) return;
 
@@ -59,17 +56,14 @@ public class RegionBukkitListener implements Listener {
 
         plugin.matchHandler().handleMatchResult(killer, victim, victimProfile);
         plugin.matchHandler().handleDeathMessage(event::deathMessage, victim, victimProfile, victim.displayName(), victim.getName(), killer);
-
-        //todo victimProfile.release();
     }
-
 
     @EventHandler
     private void onBlockPlace(final BlockPlaceEvent event) {
         final VanillaPlayer player = this.player(event.getPlayer());
         final Location location = event.getBlock().getLocation();
 
-        this.block(event, location, player, BUILD);
+        this.block(event, location, player, BUILD, PLACE);
     }
 
     @EventHandler
@@ -77,7 +71,7 @@ public class RegionBukkitListener implements Listener {
         final VanillaPlayer player = this.player(event.getPlayer());
         final Location location = event.getBlock().getLocation();
 
-        this.block(event, location, player, BREAK);
+        this.block(event, location, player, BUILD, BREAK);
     }
 
     @EventHandler
@@ -97,39 +91,40 @@ public class RegionBukkitListener implements Listener {
     @EventHandler
     public void onSaturation(final FoodLevelChangeEvent event) {
         if (!(event.getEntity() instanceof Player p)) return;
-        final VanillaPlayer player = this.player(p);
 
-        if (player == null) return;
-        final Region region = player.region();
-        if (region == null) return;
-
-        this.cancel(event, player, region, SATURATION_CHANGE);
+        this.cancel(event, SATURATION_CHANGE);
     }
 
     @EventHandler
     public void onHealth(final EntityRegainHealthEvent event) {
         if (!event.getRegainReason().equals(SATIATED)) return;
-        if (!(event.getEntity() instanceof Player p)) return;
-        final VanillaPlayer player = this.player(p);
 
-        if (player == null) return;
-        final Region region = player.region();
-        if (region == null) return;
-
-
-        this.cancel(event, player, region, REGEN_HEALTH);
+        this.cancel(event, REGEN_HEALTH);
     }
 
     /**
      * Global
      */
 
-    private void cancel(final Event event, final VanillaPlayer player, final Region rg, final FlagType flag) {
-        if (!(event instanceof Cancellable e)) return;
+    private boolean cancel(final EntityEvent event, final FlagType flag){
+        if (!(event.getEntity() instanceof Player p)) return false;
+        final VanillaPlayer player = this.player(p);
+
+        if (player == null) return false;
+        final Region region = player.region();
+        if (region == null) return false;
+
+        return this.cancel(event, player, region, flag);
+    }
+
+    private boolean cancel(final Event event, final VanillaPlayer player, final Region rg, final FlagType flag) {
+        if (!(event instanceof Cancellable e)) return false;
         final boolean can = rg.isFlagActive(flag, player.player());
         final boolean exempt = player.exempt(rg, flag.getName());
 
-        if (!can && !exempt) e.setCancelled(true);
+        boolean cancelled = !can && !exempt;
+        if (cancelled) e.setCancelled(true);
+        return cancelled;
     }
 
     /**
@@ -144,8 +139,10 @@ public class RegionBukkitListener implements Listener {
      * Block Events Common
      */
 
-    private void block(final Event event, final Location block, final VanillaPlayer player, final FlagType flagName) {
+    private void block(final Event event, final Location block, final VanillaPlayer player, final FlagType... flagNames) {
         final Region region = VanillaAPI.getRegionFromLocation(player.worldName(), new Vector3d(block.getX(), block.getY(), block.getZ()));
-        this.cancel(event, player, region, flagName);
+        for (FlagType flagName : flagNames) {
+            if (this.cancel(event, player, region, flagName)) return;
+        }
     }
 }

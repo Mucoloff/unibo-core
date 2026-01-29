@@ -53,6 +53,6 @@ public class PositionFlag extends Flag<Position> {
         Position position = region.getFlagStatus(this);
         if (position.isEmpty()) return null;
 
-        return position.toLocation();
+        return position.toBukkitLocation();
     }
 }

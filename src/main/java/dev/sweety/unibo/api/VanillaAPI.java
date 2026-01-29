@@ -8,7 +8,7 @@ import dev.sweety.unibo.api.flag.Flag;
 import dev.sweety.unibo.api.flag.FlagManager;
 import dev.sweety.unibo.api.papi.StatsExpansion;
 import dev.sweety.unibo.feature.discord.DiscordBot;
-import dev.sweety.unibo.feature.essential.CommandRegistry;
+import dev.sweety.unibo.feature.CommandRegistry;
 import dev.sweety.unibo.feature.essential.Spawn;
 import dev.sweety.unibo.feature.info.leaderboard.Leaderboard;
 import dev.sweety.unibo.feature.region.Region;

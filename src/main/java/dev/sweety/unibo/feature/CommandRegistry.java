@@ -1,16 +1,18 @@
-package dev.sweety.unibo.feature.essential;
+package dev.sweety.unibo.feature;
 
 import com.google.common.base.Joiner;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
+import dev.sweety.unibo.feature.essential.*;
 import dev.sweety.unibo.feature.info.StatsCommand;
 import dev.sweety.unibo.feature.info.leaderboard.Leaderboard;
 import dev.sweety.unibo.feature.inventory.ViewInv;
 import dev.sweety.unibo.feature.region.command.RegionCommand;
 import dev.sweety.unibo.feature.teleport.*;
+import dev.sweety.unibo.feature.teleport.tpa.TPA;
 import dev.sweety.unibo.file.Files;
-import dev.sweety.unibo.player.features.CombatLogProcessor;
-import dev.sweety.unibo.player.features.CombatStatus;
+import dev.sweety.unibo.player.features.combat.CombatLogProcessor;
+import dev.sweety.unibo.player.features.combat.CombatStatus;
 import dev.sweety.unibo.utils.McUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -90,6 +92,7 @@ public class CommandRegistry {
         Spawn.register(this.plugin);
         FeedHeal.register(this.plugin);
         FlyVanish.register(this.plugin);
+        TPA.register(this.plugin);
         this.commands.addAll(List.of(new RegionCommand(this.plugin), new ViewInv(this.plugin), new StatsCommand(this.plugin), new Teleport(this.plugin), new TeleportAll(this.plugin), new TeleportHere(this.plugin), new Speed(this.plugin), new Sudo(this.plugin)));
         this.commands.forEach(CommandWrapper::register);
     }

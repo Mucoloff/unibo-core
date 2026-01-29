@@ -3,10 +3,12 @@ package dev.sweety.unibo.feature.region;
 import com.github.retrooper.packetevents.util.Vector3d;
 import dev.sweety.core.math.MathUtils;
 
+import dev.sweety.core.util.ObjectUtils;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.serializable.SerializableManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -41,6 +43,13 @@ public class RegionManager extends SerializableManager<Region> {
         final DefaultRegion rg = findDefaultRegion(world);
         this.defaultRegions.put(world, rg);
         return rg;
+    }
+
+    @Override
+    public Region get(@Nullable final String name) {
+        if (ObjectUtils.isNull(name)) return null;
+        if (name.startsWith("default-")) return getDefaultRegion(name.substring("default-".length()));
+        return super.get(name);
     }
 
     @NotNull
