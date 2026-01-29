@@ -10,6 +10,7 @@ import dev.sweety.core.thread.ThreadManager;
 import dev.sweety.record.annotations.RecordGetter;
 import dev.sweety.unibo.api.VanillaAPI;
 import dev.sweety.unibo.api.flag.FlagManager;
+import dev.sweety.unibo.api.flag.FlagType;
 import dev.sweety.unibo.api.menu.MenuListener;
 import dev.sweety.unibo.api.papi.StatsExpansion;
 import dev.sweety.unibo.feature.GraveListener;
@@ -69,6 +70,8 @@ public class VanillaCore implements VanillaCoreAccessors {
                 Region.class,
                 DefaultRegion.class
         ).forEach(ConfigurationSerialization::registerClass);
+
+        FlagType.init(flagManager::add);
     }
 
     public void enable() {
