@@ -3,11 +3,17 @@ package dev.sweety.unibo.feature.teleport.tpa;
 import dev.sweety.core.math.function.TriFunction;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
+import dev.sweety.unibo.file.language.Language;
 import dev.sweety.unibo.player.PlayerManager;
+import dev.sweety.unibo.player.features.teleport.CancelReasons;
 import dev.sweety.unibo.player.features.teleport.TpaProcessor;
 import dev.sweety.unibo.player.features.teleport.TpaResult;
 import dev.sweety.unibo.player.features.teleport.TpaType;
 import lombok.experimental.UtilityClass;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,13 +31,13 @@ public class TPA {
         TriConsumer<Player, TpaType, String[]> action = (player, type, args) -> {
             String name = type.name().toLowerCase();
             if (args.length != 1) {
-                player.sendRichMessage("<red>Utilizzo corretto: /" + name + " <giocatore>");
+                player.sendMessage(Language.TELEPORT_TPA_USAGE.component("%command%", name));
                 return;
             }
 
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null || target == player) {
-                player.sendRichMessage("<red>Player non valido.");
+                player.sendMessage(Language.TELEPORT_TPA_INVALID__PLAYER.component());
                 return;
             }
 
@@ -41,30 +47,38 @@ public class TPA {
 
             switch (result) {
                 case SUCCESS -> {
-                    player.sendRichMessage("<gray>Richiesta inviata a <yellow>" + target.getName() + "<gray>.");
+                    player.sendMessage(Language.TELEPORT_TPA_SENT.component("%player%", target.getName()));
 
                     switch (type){
-                        case TPA -> target.sendRichMessage("<yellow>" + player.getName() + " <gray>ti ha inviato una richiesta di teleport verso di te.");
-                        case TPAHERE -> target.sendRichMessage("<yellow>" + player.getName() + " <gray>ti ha inviato una richiesta di teleport verso di lui.");
+                        case TPA -> target.sendMessage(Language.TELEPORT_TPA_RECEIVED_TPA.component("%player%", player.getName()));
+                        case TPAHERE -> target.sendMessage(Language.TELEPORT_TPA_RECEIVED_TPAHERE.component("%player%", player.getName()));
                     }
 
-                    target.sendRichMessage("<gray>Digita <yellow>/tpaccept " + player.getName() + " <gray>per accettare o <yellow>/tpdeny " + player.getName() + " <gray>per rifiutare.");
+                    target.sendMessage(
+                            Language.TELEPORT_TPA_RECEIVED_INFO__ACCEPT.component("%player%", player.getName())
+                                    .hoverEvent(HoverEvent.showText(Component.text("Click to accept").color(NamedTextColor.GREEN)))
+                                    .clickEvent(ClickEvent.runCommand("/tpaccept %player%".replace("%player%", player.getName())))
+                    );
+                    target.sendMessage(
+                            Language.TELEPORT_TPA_RECEIVED_INFO__DENY.component("%player%", player.getName())
+                                    .hoverEvent(HoverEvent.showText(Component.text("Click to deny").color(NamedTextColor.RED)))
+                                    .clickEvent(ClickEvent.runCommand("/tpdeny %player%".replace("%player%", player.getName())))
+                    );
 
                 }
                 case ALREADY_IN_TELEPORT ->
-                        player.sendRichMessage("<red>Sei già in teleport o il giocatore è occupato.");
+                        player.sendMessage(Language.TELEPORT_TPA_ERROR_ALREADY__IN__TELEPORT.component());
                 case ALREADY_REQUESTED ->
-                        player.sendRichMessage("<red>Hai già inviato una richiesta a questo giocatore.");
+                        player.sendMessage(Language.TELEPORT_TPA_ERROR_ALREADY__REQUESTED.component());
                 case TARGET_NOT_FOUND ->
-                        player.sendRichMessage("<red>Giocatore non trovato (potrebbe essere offline).");
-                default -> player.sendRichMessage("<red>Errore nell'invio della richiesta: " + result.name());
+                        player.sendMessage(Language.TELEPORT_TPA_ERROR_TARGET__NOT__FOUND.component());
+                default -> player.sendMessage(Language.TELEPORT_TPA_ERROR_UNKNOWN.component("%result%", result.name()));
             }
         };
 
         for (TpaType type : TpaType.values()) {
             CommandWrapper.action(plugin, type.name().toLowerCase(), (player, args) -> action.accept(player, type, args))
                     .suggestion((sender, args, suggestions) -> {
-                        if (args.length != 0) return;
                         if (!(sender instanceof Player player)) return;
                         Set<UUID> out = playerManager.profile(player).tpaProcessor().outgoing();
                         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -80,11 +94,11 @@ public class TPA {
         CommandWrapper.action(plugin, "tpacancel", (player, args) -> {
             TpaResult result = playerManager.profile(player)
                     .tpaProcessor()
-                    .cancelOutgoingRequests("cancel");
+                    .cancelOutgoingRequests(CancelReasons.CANCEL);
 
             switch (result) {
-                case CANCELLED -> player.sendRichMessage("<gray>Richieste annullate.");
-                case NOTHING_TO_CANCEL -> player.sendRichMessage("<red>Nessuna richiesta da annullare.");
+                case CANCELLED -> player.sendMessage(Language.TELEPORT_TPA_CANCEL_SUCCESS.component());
+                case NOTHING_TO_CANCEL -> player.sendMessage(Language.TELEPORT_TPA_CANCEL_NOTHING.component());
                 default -> {
                 }
             }
@@ -105,13 +119,13 @@ public class TPA {
             if (args.length == 0) {
                 requester = tpa.getSingleIncomingOrNull();
                 if (requester == null) {
-                    player.sendRichMessage("<red>Nessuna richiesta in arrivo.");
+                    player.sendMessage(Language.TELEPORT_TPA_NO__REQUEST.component());
                     return null;
                 }
             } else {
                 Player p = Bukkit.getPlayerExact(args[0]);
                 if (p == null) {
-                    player.sendRichMessage("<red>Player non valido.");
+                    player.sendMessage(Language.TELEPORT_TPA_INVALID__PLAYER.component());
                     return null;
                 }
                 requester = p.getUniqueId();
@@ -131,13 +145,13 @@ public class TPA {
 
             switch (result) {
                 case SUCCESS -> {
-                    player.sendRichMessage("<gray>Hai accettato la richiesta.");
-                    if (requester != null) requester.sendRichMessage("<gray>La tua richiesta è stata accettata.");
+                    player.sendMessage(Language.TELEPORT_TPA_ACCEPT_SUCCESS.component());
+                    if (requester != null) requester.sendMessage(Language.TELEPORT_TPA_ACCEPT_ACCEPTED.component());
                 }
-                case NO_REQUEST -> player.sendRichMessage("<red>Nessuna richiesta trovata.");
-                case ALREADY_IN_TELEPORT -> player.sendRichMessage("<red>Un teleport è già in corso.");
-                case TARGET_NOT_FOUND -> player.sendRichMessage("<red>Il richiedente non è più online.");
-                default -> player.sendRichMessage("<red>Errore: " + result.name());
+                case NO_REQUEST -> player.sendMessage(Language.TELEPORT_TPA_NO__REQUEST.component());
+                case ALREADY_IN_TELEPORT -> player.sendMessage(Language.TELEPORT_TPA_ERROR_ALREADY__IN__TELEPORT.component());
+                case TARGET_NOT_FOUND -> player.sendMessage(Language.TELEPORT_TPA_ACCEPT_TARGET__OFFLINE.component());
+                default -> player.sendMessage(Language.TELEPORT_TPA_ERROR_UNKNOWN.component("%result%", result.name()));
             }
         }).alias("tpyes").suggestion(suggestion).register();
 
@@ -147,9 +161,9 @@ public class TPA {
             if (args.length == 0) {
                 TpaResult result = tpa.denyAll();
                 if (result == TpaResult.SUCCESS) {
-                    player.sendRichMessage("<gray>Tutte le richieste sono state rifiutate.");
+                    player.sendMessage(Language.TELEPORT_TPA_DENY_ALL__SUCCESS.component());
                 } else {
-                    player.sendRichMessage("<red>Nessuna richiesta da rifiutare.");
+                    player.sendMessage(Language.TELEPORT_TPA_DENY_NOTHING.component());
                 }
                 return;
             }
@@ -159,9 +173,9 @@ public class TPA {
 
             TpaResult result = tpa.deny(requesterId);
             switch (result) {
-                case SUCCESS -> player.sendRichMessage("<gray>Hai rifiutato la richiesta.");
-                case NO_REQUEST -> player.sendRichMessage("<red>Nessuna richiesta trovata.");
-                default -> player.sendRichMessage("<red>Errore: " + result.name());
+                case SUCCESS -> player.sendMessage(Language.TELEPORT_TPA_DENY_SUCCESS.component());
+                case NO_REQUEST -> player.sendMessage(Language.TELEPORT_TPA_NO__REQUEST.component());
+                default -> player.sendMessage(Language.TELEPORT_TPA_ERROR_UNKNOWN.component("%result%", result.name()));
             }
         }).alias("tpno").suggestion(suggestion).register();
 

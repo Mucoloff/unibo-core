@@ -40,6 +40,44 @@ teleport:
   here:
     usage: "&cUsage: &f/teleporthere <player>"
     success: "&cTeleported &f%target%&c to your location."
+  tpa:
+    usage: "&cUtilizzo corretto: /%command% <giocatore>"
+    invalid-player: "&cPlayer non valido."
+    sent: "&7Richiesta inviata a &e%player%&7."
+    received:
+      tpa: "&e%player% &7ti ha inviato una richiesta di teleport verso di te."
+      tpahere: "&e%player% &7ti ha inviato una richiesta di teleport verso di lui."
+      info-accept: "&7Digita &e/tpaccept %player% &7per accettare."
+      info-deny: "&7Digita &e/tpdeny %player% &7per rifiutare."
+    error:
+      already-in-teleport: "&cSei già in teleport o il giocatore è occupato."
+      already-requested: "&cHai già inviato una richiesta a questo giocatore."
+      target-not-found: "&cGiocatore non trovato (potrebbe essere offline)."
+      unknown: "&cErrore nell'invio della richiesta: %result%"
+    cancel:
+      success: "&7Richieste annullate."
+      nothing: "&cNessuna richiesta da annullare."
+      cancelled: "&cIl teleport è stato annullato."
+      cancelled-reason: "&cTeleport annullato: %reason%"
+      reasons:
+        offline: "&coffline"
+        quit: "&cquittato"
+        moved: "&cmovimento"
+        failed: "&cfallito"
+        cancel: "&cannullato"
+    no-request: "&cNessuna richiesta in arrivo."
+    accept:
+      success: "&7Hai accettato la richiesta."
+      accepted: "&7La tua richiesta è stata accettata."
+      target-offline: "&cIl richiedente non è più online."
+    deny:
+      all-success: "&7Tutte le richieste sono state rifiutate."
+      nothing: "&cNessuna richiesta da rifiutare."
+      success: "&7Hai rifiutato la richiesta."
+      denied: "&cLa tua richiesta di teleport è stata rifiutata."
+    countdown:
+      tick: "&7Teletrasporto tra %time% secondi..."
+      finish: "&aTeletrasporto!"
 
 regions:
   pos:
@@ -84,4 +122,3 @@ death-messages:
 
 join-message: "&a→ %player%"
 quit-message: "&4← %player%"
-

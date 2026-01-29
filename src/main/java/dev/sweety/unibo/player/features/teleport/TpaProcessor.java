@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.packet.Packet;
 import dev.sweety.unibo.api.processor.Processor;
+import dev.sweety.unibo.file.language.Language;
 import dev.sweety.unibo.player.PlayerManager;
 import dev.sweety.unibo.player.VanillaPlayer;
 import dev.sweety.unibo.player.processors.PositionProcessor;
@@ -50,10 +51,10 @@ public class TpaProcessor extends Processor {
 
         if (pos.distance(lastPos) < 0.005) return;
 
-        cancelActive("Moved");
+        cancelActive(CancelReasons.MOVED);
     }
 
-    public void cancelActive(String reason) {
+    public void cancelActive(CancelReasons reason) {
         final ActiveTeleport tp = this.active.get();
         if (tp == null) return;
 
@@ -66,7 +67,7 @@ public class TpaProcessor extends Processor {
 
             if (other != null) {
                 final ActiveTeleport otherTp = other.active.get();
-                other.player.player().sendRichMessage("<red>Il teleport è stato annullato.");
+                other.player.player().sendMessage(Language.TELEPORT_TPA_CANCEL_CANCELLED.component());
                 if (otherTp != null && otherTp == tp) {
                     otherTp.cancel();
                     other.active.set(null);
@@ -74,7 +75,7 @@ public class TpaProcessor extends Processor {
             }
         }
 
-        player.player().sendRichMessage("<red>Teleport annullato: " + reason);
+        player.player().sendMessage(Language.TELEPORT_TPA_CANCEL_CANCELLED__REASON.component("%reason%", reason.lang().get()));
     }
 
     public TpaResult send(UUID targetId, TpaType type) {
@@ -98,7 +99,7 @@ public class TpaProcessor extends Processor {
         return TpaResult.SUCCESS;
     }
 
-    public TpaResult cancelOutgoingRequests(String reason) {
+    public TpaResult cancelOutgoingRequests(CancelReasons reason) {
         boolean cancelled = false;
         if (this.active.get() != null) {
             cancelActive(reason);
@@ -151,9 +152,7 @@ public class TpaProcessor extends Processor {
 
         if (req != null) {
             req.outgoing.remove(player.uuid());
-            req.player.player().sendRichMessage(
-                    "<red>La tua richiesta di teleport è stata rifiutata."
-            );
+            req.player.player().sendMessage(Language.TELEPORT_TPA_DENY_DENIED.component());
         }
         return true;
     }
@@ -193,7 +192,7 @@ public class TpaProcessor extends Processor {
     }
 
     public void quit() {
-        cancelOutgoingRequests("quit");
+        cancelOutgoingRequests(CancelReasons.QUIT);
     }
 
     private void startCountdown(final ActiveTeleport tp, TpaProcessor teleporter, TpaProcessor other) {
@@ -207,7 +206,7 @@ public class TpaProcessor extends Processor {
             }
 
             if (teleporter == null || !teleporter.player.player().isOnline() || other == null || !other.player.player().isOnline()) {
-                cancelActive("offline");
+                cancelActive(CancelReasons.OFFLINE);
                 return;
             }
 
@@ -215,16 +214,16 @@ public class TpaProcessor extends Processor {
             Player p = teleporter.player.player();
 
             if (remaining > 0) {
-                p.sendActionBar(Component.text("ᴛeʟᴇᴛʀᴀsᴘᴏʀᴛᴏ tra " + remaining + " secondi...", NamedTextColor.GRAY));
+                p.sendActionBar(Language.TELEPORT_TPA_COUNTDOWN_TICK.component("%time%", String.valueOf(remaining)));
             } else {
-                p.sendActionBar(Component.text("ᴛeʟᴇᴛʀᴀsᴘᴏʀᴛᴏ!", NamedTextColor.GREEN));
+                p.sendActionBar(Language.TELEPORT_TPA_COUNTDOWN_FINISH.component());
 
                 tp.stopTimer();
 
                 p.teleportAsync(tp.location())
                         .thenRun(() -> finish(tp))
                         .exceptionally(ex -> {
-                            cancelActive("fail");
+                            cancelActive(CancelReasons.FAILED);
                             return null;
                         });
             }

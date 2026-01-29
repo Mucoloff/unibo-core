@@ -171,12 +171,14 @@ public class GraveListener implements Listener {
 
         if (p.isSneaking()) {
             removeGraveBlock(block, grave, inv);
+            e.setCancelled(true);
             return;
         }
 
         if (!inv.getViewers().isEmpty()) return;
 
         p.openInventory(inv);
+        e.setCancelled(true);
     }
 
     private void removeGraveBlock(Block block, Grave grave, Inventory inv) {
