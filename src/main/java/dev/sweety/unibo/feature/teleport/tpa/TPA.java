@@ -79,6 +79,7 @@ public class TPA {
         for (TpaType type : TpaType.values()) {
             CommandWrapper.action(plugin, type.name().toLowerCase(), (player, args) -> action.accept(player, type, args))
                     .suggestion((sender, args, suggestions) -> {
+                        if (args.length > 1) return;
                         if (!(sender instanceof Player player)) return;
                         Set<UUID> out = playerManager.profile(player).tpaProcessor().outgoing();
                         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -105,6 +106,7 @@ public class TPA {
         }).register();
 
         final CommandWrapper.Suggestion suggestion = (sender, args, suggestions) -> {
+            if (args.length > 1) return;
             if (!(sender instanceof Player p)) return;
 
             TpaProcessor tpa = playerManager.profile(p).tpaProcessor();

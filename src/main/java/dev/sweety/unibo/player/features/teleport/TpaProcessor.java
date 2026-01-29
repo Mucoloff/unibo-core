@@ -49,7 +49,7 @@ public class TpaProcessor extends Processor {
 
         final Vector3d pos = this.positionProcessor.position(), lastPos = this.positionProcessor.lastPosition();
 
-        if (pos.distance(lastPos) < 0.005) return;
+        if (pos.distance(lastPos) < 0.01) return;
 
         cancelActive(CancelReasons.MOVED);
     }
