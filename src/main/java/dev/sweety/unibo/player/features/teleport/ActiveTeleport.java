@@ -3,20 +3,25 @@ package dev.sweety.unibo.player.features.teleport;
 import dev.sweety.unibo.player.VanillaPlayer;
 import org.bukkit.Location;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 class ActiveTeleport {
     private final UUID requester, target;
     private final Location location;
-    private final TpaType type;
-    volatile CompletableFuture<?> countdown;
+    private volatile CompletableFuture<?> countdown;
 
     public ActiveTeleport(UUID requester, UUID target, Location location, TpaType type) {
-        this.requester = requester;
-        this.target = target;
+        if (type == TpaType.TPA) {
+            this.requester = requester;
+            this.target = target;
+        } else {
+            this.requester = target;
+            this.target = requester;
+        }
+
         this.location = location;
-        this.type = type;
     }
 
     private boolean cancelled = false;
@@ -31,24 +36,27 @@ class ActiveTeleport {
         }
     }
 
-    public boolean cancelled() {
-        return this.cancelled;
+    public synchronized void assignTask(CompletableFuture<?> task) {
+        if (this.cancelled) {
+            task.cancel(true);
+            return;
+        }
+        this.countdown = task;
+    }
+
+    public synchronized void stopTimer() {
+        if (this.countdown != null) {
+            this.countdown.cancel(false);
+            this.countdown = null;
+        }
     }
 
     public UUID requester() {
         return this.requester;
     }
 
-    public UUID target() {
-        return this.target;
-    }
-
     public Location location() {
         return this.location;
-    }
-
-    public TpaType type() {
-        return this.type;
     }
 
     public UUID other(final VanillaPlayer player) {

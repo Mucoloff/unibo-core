@@ -36,7 +36,7 @@ public class GravePositions extends BukkitFile {
             config.set(name + ".location", grave.deathLocation().serialize());
 
             config.set(name + ".player.name", grave.playerName());
-            config.set(name + ".player.id", grave.uuid());
+            config.set(name + ".player.id", grave.uuid().toString());
 
             config.set(name + ".time", grave.time());
 
@@ -46,7 +46,6 @@ public class GravePositions extends BukkitFile {
 
             for (int i = 0; i < contents.length; i++) {
                 ItemStack item = contents[i];
-
                 if (item != null) config.set(name + ".inventory.contents." + i, item);
             }
 

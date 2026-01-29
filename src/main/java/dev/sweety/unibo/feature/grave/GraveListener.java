@@ -3,6 +3,7 @@ package dev.sweety.unibo.feature.grave;
 import dev.sweety.unibo.api.VanillaAPI;
 import dev.sweety.unibo.utils.ColorUtils;
 import dev.sweety.unibo.utils.McUtils;
+import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import eu.decentsoftware.holograms.api.holograms.HologramLine;
 import eu.decentsoftware.holograms.api.holograms.HologramPage;
@@ -16,11 +17,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -31,6 +34,9 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.bukkit.Material.AIR;
 
@@ -38,7 +44,7 @@ public class GraveListener implements Listener {
 
     public static HashMap<Block, Grave> graves = new HashMap<>();
 
-    private static NamespacedKey key;
+    static NamespacedKey key;
 
     public GraveListener() {
         key = new NamespacedKey(VanillaAPI.instance(), "grave");
@@ -51,20 +57,7 @@ public class GraveListener implements Listener {
         graves.forEach((block, grave) -> {
             if (!p.getUniqueId().equals(grave.uuid())) return;
 
-            ItemStack paper = new ItemStack(Material.PAPER);
-
-            paper.editMeta(meta -> {
-
-                String date = new SimpleDateFormat("dd/MM hh:mm:ss").format(new Date(grave.time()));
-                Location location = grave.deathLocation();
-                String lore = String.format("%s\n&aDeath Time: &c%s", location(location, true), date);
-                String name = String.format("&e%s's &7Grave", p.getName());
-                meta.displayName(McUtils.component(name));
-                meta.lore(McUtils.colorList(Arrays.stream(lore.split("\n")).toList()));
-
-                meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
-            });
-
+            ItemStack paper = grave.item();
 
             p.getInventory().addItem(paper);
         });
@@ -87,22 +80,17 @@ public class GraveListener implements Listener {
     }
 
     @EventHandler
-    public void onDeath(EntityDeathEvent e) {
-        if (!(e.getEntity() instanceof Player victim)) return;
+    public void onDeath(PlayerDeathEvent e) {
+        final Player victim = e.getPlayer();
 
         final List<ItemStack> drops = e.getDrops();
 
-        drops.removeIf(i -> {
+        Predicate<ItemStack> removeCondition = i -> {
             if (!i.hasItemMeta()) return false;
+            return i.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE);
+        };
 
-            ItemMeta meta = i.getItemMeta();
-
-            if (meta.getPersistentDataContainer().has(key, PersistentDataType.BYTE)) {
-                return true;
-            }
-
-            return false;
-        });
+        drops.removeIf(removeCondition);
 
         if (drops.isEmpty()) return;
 
@@ -139,7 +127,6 @@ public class GraveListener implements Listener {
             block.setBlockData(rot, true);
         } catch (Throwable ignored) {
         }
-
 
         Inventory inv = Bukkit.createInventory(null, 4 * 9, Component.text(victim.getName() + "' grave"));
 
@@ -202,32 +189,12 @@ public class GraveListener implements Listener {
         graves.remove(block);
     }
 
-    public static String location(Location location, boolean world) {
-        return ColorUtils.color(world ? (String.format("&eWorld: &f%s\n&e[&6 %s / %s / %s &e]",
-                location.getWorld().getName(),
-                location.getBlockX(),
-                location.getBlockY(),
-                location.getBlockZ())) : (String.format("&e[&6 %s / %s / %s &e]",
-                location.getBlockX(),
-                location.getBlockY(),
-                location.getBlockZ())));
-    }
-
     private static Hologram holo(String name) {
-        return Hologram.getCachedHologram(name);
+        return DHAPI.getHologram(name);
     }
 
     private static void create(String name, Location location, List<String> lines) {
-        Hologram hologram = new Hologram(name, location, true);
-        HologramPage page = hologram.getPage(0);
-        if (lines != null) {
-            for (String line : lines) {
-                HologramLine hologramLine = new HologramLine(page, page.getNextLineLocation(), line);
-                page.addLine(hologramLine);
-            }
-        }
-        hologram.showAll();
-        hologram.save();
+        DHAPI.createHologram(name, location, true, lines);
     }
 
 }

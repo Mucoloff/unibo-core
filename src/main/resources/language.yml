@@ -74,7 +74,6 @@ regions:
     already-exists: "&cRegion &f%region% &calready exists."
     missing-positions: "&cYou must set both positions before."
 
-
 death-messages:
   player-killed: "&#e74c3c%victim% &7was eliminated by &#ff8633%killer% &7🔪 &7(&c%killer_health%&7)"
   fall-death: "&e%victim% fell from a great height! 💥"

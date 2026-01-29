@@ -8,13 +8,17 @@ import dev.sweety.unibo.player.PlayerManager;
 import dev.sweety.unibo.player.VanillaPlayer;
 import dev.sweety.unibo.player.processors.PositionProcessor;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TpaProcessor extends Processor {
@@ -91,14 +95,6 @@ public class TpaProcessor extends Processor {
         this.outgoing.add(targetId);
         target.incoming.put(player.uuid(), type);
 
-        // Notify target (Moved from messages to here to ensure target still gets notif,
-        // but sender message will be handled by TPA.java via return result)
-        // Actually, user said send messages from command.
-        // But target is not running the command. TPA.java handles the sender.
-        // TPA.java also has access to target Player object so it CAN send message to target.
-        // I will attempt to remove messages here and assume TPA.java will handle BOTH if possible.
-        // But send(UUID) receives UUID. TPA.java has Player.
-
         return TpaResult.SUCCESS;
     }
 
@@ -133,7 +129,7 @@ public class TpaProcessor extends Processor {
     public TpaResult denyAll() {
         final Set<UUID> toDeny = new HashSet<>(incoming.keySet());
 
-        if (toDeny.isEmpty()){
+        if (toDeny.isEmpty()) {
             return TpaResult.NO_REQUEST;
         }
 
@@ -190,7 +186,9 @@ public class TpaProcessor extends Processor {
         this.active.set(tp);
         req.active.set(tp);
 
-        startCountdown(tp, req, this);
+        if (type.equals(TpaType.TPA)) startCountdown(tp, req, this);
+        else req.startCountdown(tp, this, req);
+
         return TpaResult.SUCCESS;
     }
 
@@ -198,24 +196,41 @@ public class TpaProcessor extends Processor {
         cancelOutgoingRequests("quit");
     }
 
-    private void startCountdown(final ActiveTeleport tp, TpaProcessor req, TpaProcessor target) {
-        tp.countdown = this.player.profileThread().schedule(() -> {
-            final ActiveTeleport current = active.get();
-            if (current != tp) return; // teleport già cancellato
+    private void startCountdown(final ActiveTeleport tp, TpaProcessor teleporter, TpaProcessor other) {
+        final AtomicInteger seconds = new AtomicInteger(3);
 
-            if (req == null || !req.player.player().isOnline() || target == null || !target.player.player().isOnline()) {
+        CompletableFuture<?> task = this.player.profileThread().scheduleAtFixedRate(() -> {
+            final ActiveTeleport current = active.get();
+            if (current != tp) {
+                tp.stopTimer();
+                return;
+            }
+
+            if (teleporter == null || !teleporter.player.player().isOnline() || other == null || !other.player.player().isOnline()) {
                 cancelActive("offline");
                 return;
             }
 
-            Player p = tp.type() == TpaType.TPA ? req.player.player() : target.player.player();
-            p.teleportAsync(tp.location())
-                    .thenRun(() -> finish(tp))
-                    .exceptionally(ex -> {
-                        cancelActive("fail");
-                        return null;
-                    });
-        }, 3, TimeUnit.SECONDS);
+            int remaining = seconds.getAndDecrement();
+            Player p = teleporter.player.player();
+
+            if (remaining > 0) {
+                p.sendActionBar(Component.text("ᴛeʟᴇᴛʀᴀsᴘᴏʀᴛᴏ tra " + remaining + " secondi...", NamedTextColor.GRAY));
+            } else {
+                p.sendActionBar(Component.text("ᴛeʟᴇᴛʀᴀsᴘᴏʀᴛᴏ!", NamedTextColor.GREEN));
+
+                tp.stopTimer();
+
+                p.teleportAsync(tp.location())
+                        .thenRun(() -> finish(tp))
+                        .exceptionally(ex -> {
+                            cancelActive("fail");
+                            return null;
+                        });
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+
+        tp.assignTask(task);
     }
 
     private void finish(ActiveTeleport tp) {
@@ -243,5 +258,13 @@ public class TpaProcessor extends Processor {
 
     public Collection<String> incomingNames() {
         return this.incoming.keySet().stream().map(Bukkit::getOfflinePlayer).map(OfflinePlayer::getName).filter(Objects::nonNull).toList();
+    }
+
+    public Set<UUID> outgoing() {
+        return outgoing;
+    }
+
+    public Map<UUID, TpaType> incoming() {
+        return incoming;
     }
 }

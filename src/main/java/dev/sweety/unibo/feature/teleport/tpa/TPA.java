@@ -12,6 +12,7 @@ import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Set;
 import java.util.UUID;
 
 @UtilityClass
@@ -41,18 +42,38 @@ public class TPA {
             switch (result) {
                 case SUCCESS -> {
                     player.sendRichMessage("<gray>Richiesta inviata a <yellow>" + target.getName() + "<gray>.");
-                    target.sendRichMessage("<yellow>" + player.getName() + " <gray>ti ha inviato una richiesta di teleport.");
+
+                    switch (type){
+                        case TPA -> target.sendRichMessage("<yellow>" + player.getName() + " <gray>ti ha inviato una richiesta di teleport verso di te.");
+                        case TPAHERE -> target.sendRichMessage("<yellow>" + player.getName() + " <gray>ti ha inviato una richiesta di teleport verso di lui.");
+                    }
+
                     target.sendRichMessage("<gray>Digita <yellow>/tpaccept " + player.getName() + " <gray>per accettare o <yellow>/tpdeny " + player.getName() + " <gray>per rifiutare.");
+
                 }
-                case ALREADY_IN_TELEPORT -> player.sendRichMessage("<red>Sei già in teleport o il giocatore è occupato.");
-                case ALREADY_REQUESTED -> player.sendRichMessage("<red>Hai già inviato una richiesta a questo giocatore.");
-                case TARGET_NOT_FOUND -> player.sendRichMessage("<red>Giocatore non trovato (potrebbe essere offline).");
+                case ALREADY_IN_TELEPORT ->
+                        player.sendRichMessage("<red>Sei già in teleport o il giocatore è occupato.");
+                case ALREADY_REQUESTED ->
+                        player.sendRichMessage("<red>Hai già inviato una richiesta a questo giocatore.");
+                case TARGET_NOT_FOUND ->
+                        player.sendRichMessage("<red>Giocatore non trovato (potrebbe essere offline).");
                 default -> player.sendRichMessage("<red>Errore nell'invio della richiesta: " + result.name());
             }
         };
 
         for (TpaType type : TpaType.values()) {
-            CommandWrapper.action(plugin, type.name().toLowerCase(), (player, args) -> action.accept(player, type, args)).register();
+            CommandWrapper.action(plugin, type.name().toLowerCase(), (player, args) -> action.accept(player, type, args))
+                    .suggestion((sender, args, suggestions) -> {
+                        if (args.length != 0) return;
+                        if (!(sender instanceof Player player)) return;
+                        Set<UUID> out = playerManager.profile(player).tpaProcessor().outgoing();
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            if (p.equals(sender)) continue;
+                            if (out.contains(p.getUniqueId())) continue;
+                            suggestions.add(p.getName());
+                        }
+                    })
+                    .register();
         }
 
 
@@ -61,10 +82,11 @@ public class TPA {
                     .tpaProcessor()
                     .cancelOutgoingRequests("cancel");
 
-            switch(result) {
+            switch (result) {
                 case CANCELLED -> player.sendRichMessage("<gray>Richieste annullate.");
                 case NOTHING_TO_CANCEL -> player.sendRichMessage("<red>Nessuna richiesta da annullare.");
-                default -> {}
+                default -> {
+                }
             }
         }).register();
 
@@ -78,7 +100,7 @@ public class TPA {
         };
 
 
-        TriFunction<UUID, Player,TpaProcessor, String[]> handleRequest = (player, tpa, args) -> {
+        TriFunction<UUID, Player, TpaProcessor, String[]> handleRequest = (player, tpa, args) -> {
             final UUID requester;
             if (args.length == 0) {
                 requester = tpa.getSingleIncomingOrNull();
@@ -107,7 +129,7 @@ public class TPA {
             TpaResult result = tpa.accept(requesterId);
             Player requester = Bukkit.getPlayer(requesterId);
 
-            switch(result) {
+            switch (result) {
                 case SUCCESS -> {
                     player.sendRichMessage("<gray>Hai accettato la richiesta.");
                     if (requester != null) requester.sendRichMessage("<gray>La tua richiesta è stata accettata.");
@@ -136,7 +158,7 @@ public class TPA {
             if (requesterId == null) return;
 
             TpaResult result = tpa.deny(requesterId);
-            switch(result) {
+            switch (result) {
                 case SUCCESS -> player.sendRichMessage("<gray>Hai rifiutato la richiesta.");
                 case NO_REQUEST -> player.sendRichMessage("<red>Nessuna richiesta trovata.");
                 default -> player.sendRichMessage("<red>Errore: " + result.name());
