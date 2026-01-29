@@ -23,6 +23,7 @@ import dev.sweety.unibo.feature.region.listener.RegionBukkitListener;
 import dev.sweety.unibo.feature.region.listener.RegionCreate;
 import dev.sweety.unibo.player.MatchHandler;
 import dev.sweety.unibo.player.PlayerManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
@@ -86,7 +87,6 @@ public class VanillaCore implements VanillaCoreAccessors {
                 new Views.Handler()
         );
 
-
         this.commandRegistry.register();
 
         this.discordBot.start();
@@ -102,11 +102,11 @@ public class VanillaCore implements VanillaCoreAccessors {
     }
 
     public void registerEvent(final Listener listener) {
-        this.instance.getServer().getPluginManager().registerEvents(listener, this.instance);
+        Bukkit.getServer().getPluginManager().registerEvents(listener, this.instance);
     }
 
     public void registerEvents(final Listener... listeners) {
-        final PluginManager manager = this.instance.getServer().getPluginManager();
+        final PluginManager manager = Bukkit.getServer().getPluginManager();
         for (Listener listener : listeners) manager.registerEvents(listener, this.instance);
     }
 

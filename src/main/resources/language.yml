@@ -76,13 +76,13 @@ regions:
 
 
 death-messages:
-  player-killed: "&#e74c3c{victim} &7was eliminated by &#ff8633{killer} &7🔪 &7(&c{killer_health}&7)"
-  fall-death: "&e{victim} fell from a great height! 💥"
-  drowning-death: "&b{victim} drowned! 🌊"
-  unknown-death: "&7{victim} died mysteriously! ❓"
-  end-crystal-killed: "&c{victim} was killed by {killer}&7(&c{killer_health}&7)&c using an End Crystal! 💥"
+  player-killed: "&#e74c3c%victim% &7was eliminated by &#ff8633%killer% &7🔪 &7(&c%killer_health%&7)"
+  fall-death: "&e%victim% fell from a great height! 💥"
+  drowning-death: "&b%victim% drowned! 🌊"
+  unknown-death: "&7%victim% died mysteriously! ❓"
+  end-crystal-killed: "&c%victim% was killed by %killer%&7(&c%killer_health%&7)&c using an End Crystal! 💥"
   show-inv: "&cClick here to view %player% inventory!"
 
-join-message: "&a→ {player}"
-quit-message: "&4← {player}"
+join-message: "&a→ %player%"
+quit-message: "&4← %player%"
 

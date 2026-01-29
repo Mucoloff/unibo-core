@@ -53,7 +53,7 @@ public class RegionManager extends SerializableManager<Region> {
     }
 
     public Region getWherePlayerIs(final Player player) {
-        return this.resource.playerManager().getProfile(player).region();
+        return this.resource.playerManager().profile(player).region();
     }
 
 }

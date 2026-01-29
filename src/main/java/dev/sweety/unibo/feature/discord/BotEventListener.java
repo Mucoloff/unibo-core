@@ -26,11 +26,9 @@ public class BotEventListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@NonNull MessageReceivedEvent event) {
         final User author = event.getAuthor();
-        System.out.println("Received message from " + author.getName());
         if (author.isBot() || author.isSystem() || event.isWebhookMessage() || !isChannel.test(event.getChannel())) return;
 
         final String message = event.getMessage().getContentDisplay();
-        System.out.println("content: " + message);
 
         this.sendMessage.accept(author.getName(), message);
     }

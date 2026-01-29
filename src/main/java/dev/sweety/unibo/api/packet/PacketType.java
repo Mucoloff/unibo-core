@@ -1,5 +1,7 @@
 package dev.sweety.unibo.api.packet;
 
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+
 public interface PacketType {
 
     enum PacketClient implements PacketType {
@@ -69,12 +71,15 @@ public interface PacketType {
         COOKIE_RESPONSE,
         SELECT_KNOWN_PACKS,
         CONFIGURATION_END_ACK,
-        DEBUG_SAMPLE_SUBSCRIPTION
+        DEBUG_SAMPLE_SUBSCRIPTION,
+
+        ;
     }
 
     enum PacketServer implements PacketType {
         LOGIN_SUCCESS,
         UPDATE_TAGS,
+        WAYPOINT,
         CONFIGURATION_END,
         SELECT_KNOWN_PACKS,
         REGISTRY_DATA,
@@ -147,6 +152,9 @@ public interface PacketType {
         OPEN_WINDOW,
         OPEN_SIGN_EDITOR,
         PING,
+        PONG,
+        RESPONSE,
+        ENCRYPTION_REQUEST,
         CRAFT_RECIPE_RESPONSE,
         PLAYER_ABILITIES,
         END_COMBAT_EVENT,
@@ -227,6 +235,8 @@ public interface PacketType {
         TRANSFER,
         PROJECTILE_POWER,
         CUSTOM_REPORT_DETAILS,
-        SERVER_LINKS
+        SERVER_LINKS,
+
+        ;
     }
 }

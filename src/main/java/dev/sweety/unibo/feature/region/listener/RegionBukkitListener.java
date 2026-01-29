@@ -54,10 +54,13 @@ public class RegionBukkitListener implements Listener {
     public void onDeath(final PlayerDeathEvent event){
         final Player victim = event.getPlayer(), killer = victim.getKiller();
         if (killer == null) return;
+
         VanillaPlayer victimProfile = this.player(victim);
 
-        plugin.matchHandler().handleMatchResult(killer, victimProfile);
-        plugin.matchHandler().handleDeathMessage(event::deathMessage, victimProfile, victim.displayName(), victim.getName(), killer);
+        plugin.matchHandler().handleMatchResult(killer, victim, victimProfile);
+        plugin.matchHandler().handleDeathMessage(event::deathMessage, victim, victimProfile, victim.displayName(), victim.getName(), killer);
+
+        //todo victimProfile.release();
     }
 
 
@@ -134,7 +137,7 @@ public class RegionBukkitListener implements Listener {
      */
 
     private VanillaPlayer player(final Player player) {
-        return this.playerManager.getProfile(player);
+        return this.playerManager.profile(player);
     }
 
     /**

@@ -23,7 +23,7 @@ public class DamageProcessor extends Processor {
         this.playerManager = plugin.playerManager();
     }
 
-    private Entity attacker = null;
+    private Entity damager = null;
     private Entity cause = null;
 
     private boolean isPlayer = false;
@@ -40,7 +40,7 @@ public class DamageProcessor extends Processor {
 
         final World world = this.player.world();
 
-        this.attacker = sourceCauseId > 0 ? SpigotConversionUtil.getEntityById(world, sourceCauseId - 1) : null;
+        this.damager = sourceCauseId > 0 ? SpigotConversionUtil.getEntityById(world, sourceCauseId - 1) : null;
         if (sourceDirectId > 0) {
             this.cause = sourceDirectId == sourceCauseId ? null : SpigotConversionUtil.getEntityById(world, sourceDirectId - 1);
         }

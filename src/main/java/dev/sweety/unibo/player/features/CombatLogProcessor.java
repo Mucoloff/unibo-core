@@ -13,13 +13,18 @@ import dev.sweety.unibo.file.language.Language;
 import dev.sweety.unibo.player.PlayerManager;
 
 import dev.sweety.unibo.player.VanillaPlayer;
-import dev.sweety.unibo.player.processors.CombatProcessor;
+import dev.sweety.unibo.player.processors.AttackProcessor;
 import dev.sweety.unibo.player.processors.DamageProcessor;
+import dev.sweety.unibo.utils.McUtils;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Getter
 public class CombatLogProcessor extends Processor {
 
-    private final CombatProcessor combatProcessor;
+    private final AttackProcessor attackProcessor;
 
     private final int maxCooldown;
     private final AtomicLong cooldown = new AtomicLong(-1);
@@ -43,10 +48,17 @@ public class CombatLogProcessor extends Processor {
 
     private CompletableFuture<?> task = null;
 
+    private boolean enabled = true;
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        player.combatStatus(enabled ? CombatStatus.IDLE : CombatStatus.DISABLED);
+    }
+
     public CombatLogProcessor(final VanillaPlayer player, final VanillaCore plugin) {
         super(player, plugin);
         this.playerManager = plugin.playerManager();
-        this.combatProcessor = player.combatProcessor();
+        this.attackProcessor = player.attackProcessor();
         this.damageProcessor = player.damageProcessor();
         this.profileThread = player.profileThread();
         this.maxCooldown = plugin.config().getInt("combat.cooldown", 15) * 1000;
@@ -71,19 +83,43 @@ public class CombatLogProcessor extends Processor {
     @Override
     public void handle(final Packet packet) {
         if (packet.isCancelled()) return;
-        final Player lastPlayerHit = this.combatProcessor.getLastPlayerHit();
-        final Player p = this.player.player();
+        final Player lastPlayerHit = this.attackProcessor.getLastPlayerHit();
+        final Player self = this.player.player();
 
-        final Entity eAttacker = this.damageProcessor.getAttacker();
+        final Entity damager = this.damageProcessor.getDamager();
         switch (packet.getWrapper()) {
             case WrapperPlayClientInteractEntity wrap -> {
-                //if (combatProcessor.isAttack()) this.biTag(lastPlayerHit);
+                if (this.attackProcessor.isAttack()) {
+                    if (!enabled) {
+                        self.sendRichMessage("<red>You have disabled PvP!");
+                        packet.cancel();
+                        return;
+                    }
+
+                    final VanillaPlayer profile = this.playerManager.profile(lastPlayerHit);
+                    if (profile == null) return;
+                    if (!profile.combatLogProcessor().enabled) {
+                        self.sendRichMessage("<red>" + lastPlayerHit.getName() + " has disabled PvP!");
+                        packet.cancel();
+                        return;
+                    }
+                    this.tag(lastPlayerHit);
+                    profile.tag(this.player.player());
+                }
             }
 
             case WrapperPlayServerDamageEvent wrap -> {
                 if (!this.damageProcessor.isPlayer()) return;
-                if (!(eAttacker instanceof Player attacker)) return;
-                this.biTag(attacker);
+                if (!(damager instanceof Player attacker)) return;
+                if (!enabled) {
+                    attacker.sendRichMessage("<red>" + self.getName() + " has disabled PvP!");
+                    packet.cancel();
+                    return;
+                }
+                this.tag(attacker);
+                final VanillaPlayer profile = this.playerManager.profile(attacker);
+                if (profile == null) return;
+                profile.tag(this.player.player());
             }
 
             case WrapperPlayClientChatCommandUnsigned wrap -> {
@@ -96,12 +132,12 @@ public class CombatLogProcessor extends Processor {
 
                 if (inList && !blacklist) return;
 
-                if (p.hasPermission("unibo.staff.combatlog.bypass")) {
-                    p.sendRichMessage("<red>combat bypass: \"" + command + "\"");
+                if (self.hasPermission("unibo.staff.combatlog.bypass")) {
+                    self.sendRichMessage("<red>combat bypass: \"" + command + "\"");
                     return;
                 }
 
-                p.sendRichMessage("<red>Yᴏᴜ ᴄᴀɴɴᴏᴛ ᴇxᴇᴄᴜᴛᴇ ᴄᴏᴍᴍᴀɴᴅs ᴡʜɪʟᴇ ɪɴ ᴄᴏᴍʙᴀᴛ!");
+                self.sendRichMessage("<red>Yᴏᴜ ᴄᴀɴɴᴏᴛ ᴇxᴇᴄᴜᴛᴇ ᴄᴏᴍᴍᴀɴᴅs ᴡʜɪʟᴇ ɪɴ ᴄᴏᴍʙᴀᴛ!");
                 packet.cancel();
             }
 
@@ -112,14 +148,14 @@ public class CombatLogProcessor extends Processor {
             case WrapperPlayServerDeathCombatEvent wrap -> {
                 this.clear();
                 if (lastPlayerHit != null) {
-                    VanillaPlayer profile = this.playerManager.getProfile(lastPlayerHit);
+                    VanillaPlayer profile = this.playerManager.profile(lastPlayerHit);
                     if (profile == null) return;
-                    profile.clear();
+                    profile.removeCombat();
                 }
-                if (eAttacker instanceof Player attacker){
-                    VanillaPlayer profile = this.playerManager.getProfile(attacker);
+                if (damager instanceof Player attacker) {
+                    VanillaPlayer profile = this.playerManager.profile(attacker);
                     if (profile == null) return;
-                    profile.clear();
+                    profile.removeCombat();
                 }
             }
 
@@ -131,15 +167,17 @@ public class CombatLogProcessor extends Processor {
     }
 
     public void quit() {
+        if (notCombat()) return;
+
         final Player p = this.player.player();
-        Player lastPlayerHit = this.combatProcessor.getLastPlayerHit();
+        Player lastPlayerHit = this.attackProcessor.getLastPlayerHit();
         if (lastPlayerHit == null) {
             final DamageProcessor damageProcessor = this.damageProcessor;
-            if (damageProcessor.getAttacker() instanceof Player attacker) lastPlayerHit = attacker;
+            if (damageProcessor.getDamager() instanceof Player attacker) lastPlayerHit = attacker;
             if (damageProcessor.getCause() instanceof Player cause) lastPlayerHit = cause;
         }
-        if (notCombat()) return;
-        final TextComponent reason = Component.text(Language.COMBAT_LOG__OUT.get("%player%", this.player.name()));
+
+        final TextComponent reason = McUtils.component(Language.COMBAT_LOG__OUT.get("%player%", this.player.name()));
         Bukkit.broadcast(reason);
         this.clear();
 
@@ -148,23 +186,26 @@ public class CombatLogProcessor extends Processor {
             return;
         }
 
-        final VanillaPlayer victim = this.playerManager.getProfile(lastPlayerHit);
-        if (victim.combatProcessor().getLastPlayerHit().equals(this.getPlayer().player())) {
-            victim.clear();
-            p.damage(p.getHealth(), lastPlayerHit);
-        }
+        final VanillaPlayer killerProfile = this.playerManager.profile(lastPlayerHit);
+        if (killerProfile != null) killerProfile.removeCombat();
+
+        this.player.retain();
+
+        final Player killer = lastPlayerHit;
+        Bukkit.getScheduler().runTask(plugin.instance(), () -> {
+            DamageSource source = DamageSource.
+                    builder(DamageType.PLAYER_ATTACK)
+                    .withDirectEntity(killer)
+                    .withCausingEntity(killer)
+                    .build();
+            p.damage(p.getHealth(), source);
+            this.player.release();
+        });
     }
 
     public void tag(final VanillaPlayer victim) {
         this.tag(victim.player());
         victim.tag(this.player.player());
-    }
-
-    private void biTag(final Player player) {
-        this.tag(player);
-        final VanillaPlayer profile = this.playerManager.getProfile(player);
-        if (profile == null) return;
-        profile.tag(this.player.player());
     }
 
     public void tag(final Player victim) {
@@ -177,6 +218,7 @@ public class CombatLogProcessor extends Processor {
         }
 
         this.combat.set(true);
+        this.player.combatStatus(CombatStatus.ENGAGED);
         final long now = System.currentTimeMillis();
         this.cooldown.set(now);
 
@@ -193,6 +235,8 @@ public class CombatLogProcessor extends Processor {
         p.sendActionBar(end);
 
         this.combat.set(false);
+        this.player.combatStatus(CombatStatus.IDLE);
+
         this.cooldown.set(-1);
         this.cancel();
     }

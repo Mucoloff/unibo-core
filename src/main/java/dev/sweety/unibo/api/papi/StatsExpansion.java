@@ -39,7 +39,7 @@ public class StatsExpansion extends PlaceholderExpansion {
     @Override
     public @Nullable String onPlaceholderRequest(final Player player, final @NotNull String params) {
         if (player == null) return null;
-        final VanillaPlayer profile = this.playerManager.getProfile(player.getUniqueId());
+        final VanillaPlayer profile = this.playerManager.profile(player.getUniqueId());
         final Stats stats = profile.stats();
 
         return switch (params.toLowerCase()) {

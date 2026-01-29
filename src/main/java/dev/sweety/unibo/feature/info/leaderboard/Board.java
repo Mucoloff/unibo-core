@@ -1,6 +1,7 @@
 package dev.sweety.unibo.feature.info.leaderboard;
 
 import dev.sweety.unibo.api.VanillaAPI;
+import dev.sweety.unibo.utils.McUtils;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -48,7 +49,7 @@ public enum Board {
             for (int i = 0; i < entries.size(); i++) {
                 Leaderboard.Entry entry = entries.get(i);
                 String value = bool() ? String.format("%.2f", entry.score()) : String.valueOf(((int) entry.score()));
-                TextComponent text = (Component.text("#" + (i + 1) + " ").color(NamedTextColor.GRAY).append((Component.text(entry.name() + " - " + value)).color(NamedTextColor.YELLOW))).decoration(TextDecoration.ITALIC, false);
+                TextComponent text = (Component.text("#" + (i + 1) + " ").color(NamedTextColor.GRAY).append((McUtils.component(entry.name() + " - " + value)).color(NamedTextColor.YELLOW))).decoration(TextDecoration.ITALIC, false);
                 lore.add(text);
             }
 

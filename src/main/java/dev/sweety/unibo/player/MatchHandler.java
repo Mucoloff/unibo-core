@@ -34,16 +34,14 @@ public class MatchHandler {
         this.playerManager = plugin.playerManager();
     }
 
-    public void handleMatchResult(final Player winner, final VanillaPlayer loserProfile) {
-        final VanillaPlayer winnerProfile = this.playerManager.getProfile(winner);
-        final Player loser = loserProfile.player();
-        loserProfile.clear();
+    public void handleMatchResult(final Player winner, Player loser, final VanillaPlayer loserProfile) {
+        final VanillaPlayer winnerProfile = this.playerManager.profile(winner);
+        loserProfile.removeCombat();
         if (winnerProfile == null) return;
-        winnerProfile.clear();
+        winnerProfile.removeCombat();
 
         this.viewInventory.put(winner.getUniqueId(), new Views(winner));
         this.viewInventory.put(loser.getUniqueId(), new Views(loser));
-
 
         final Stats winnerStats = winnerProfile.stats();
         final Stats loserStats = loserProfile.stats();
@@ -69,41 +67,46 @@ public class MatchHandler {
         Files.PLAYER_ELO.save(winnerProfile, loserProfile);
     }
 
-    public void handleDeathMessage(Consumer<Component> consumer, VanillaPlayer victim, Component victimDisplay, String victimName, Player killer) {
-        final DamageProcessor damageProcessor = victim.damageProcessor();
+    public void handleDeathMessage(Consumer<Component> consumer, Player victim, VanillaPlayer victimProfile, Component victimDisplay, String victimName, Player killer) {
+        final DamageProcessor damageProcessor = victimProfile.damageProcessor();
         final double health = killer.getHealth();
 
-        final Entity attacker = damageProcessor.getAttacker();
+        final Entity attacker = damageProcessor.getDamager();
         final Entity cause = damageProcessor.getCause();
 
         if (attacker == null) {
+            if (damageProcessor.getSourceType() == null) {
+                final Language lang = Language.DEATH__MESSAGES_UNKNOWN__DEATH;
+                consumer.accept(lang.component("%victim%", victimName));
+                return;
+            }
             final Language lang = switch (damageProcessor.getSourceType().getMessageId()) {
                 case "fall" -> Language.DEATH__MESSAGES_FALL_DEATH;
                 case "drown" -> Language.DEATH__MESSAGES_DROWNING__DEATH;
-                case null, default -> Language.DEATH__MESSAGES_UNKNOWN__DEATH;
+                default -> Language.DEATH__MESSAGES_UNKNOWN__DEATH;
             };
-            consumer.accept(lang.component("{victim}", victimName));
+            consumer.accept(lang.component("%victim%", victimName));
             return;
         }
 
         final Language msg = cause instanceof EnderCrystal ? Language.DEATH__MESSAGES_END__CRYSTAL__KILLED : Language.DEATH__MESSAGES_PLAYER__KILLED;
         final Language show_inv = Language.DEATH__MESSAGES_SHOW__INV;
-        final Component deathMessage = msg.component("{killer_health}", String.format("%.2f", health / 2.0) + "❤");
+        final Component deathMessage = msg.component("%killer_health%", String.format("%.2f", health / 2.0) + "❤");
         consumer.accept(deathMessage
                 .replaceText(TextReplacementConfig.builder()
-                        .matchLiteral("{victim}")
+                        .matchLiteral("%victim%")
                         .replacement(victimDisplay
                                 .hoverEvent(HoverEvent.showText(show_inv.component("%player%", victimName + "'s")))
                                 .clickEvent(ClickEvent.runCommand("/viewinv " + victimName)))
                         .build())
                 .replaceText(TextReplacementConfig.builder()
-                        .matchLiteral("{killer}")
+                        .matchLiteral("%killer%")
                         .replacement(killer.displayName()
                                 .hoverEvent(HoverEvent.showText(show_inv.component("%player%", killer.getName() + "'s")))
                                 .clickEvent(ClickEvent.runCommand("/viewinv " + killer.getName())))
                         .build())
         );
-        victim.player().sendMessage(show_inv.component("%player%", "players"));
+        victim.sendMessage(show_inv.component("%player%", "players"));
     }
 
 }

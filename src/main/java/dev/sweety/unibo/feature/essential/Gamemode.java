@@ -46,7 +46,10 @@ public class Gamemode {
         for (GameMode value : GameMode.values()) {
             String lower = value.name().toLowerCase();
 
-            CommandWrapper.action(plugin, lower, (sender, args) -> setGameMode(sender, args, value)).alias("gm" + lower + (value == GameMode.SPECTATOR ? "p" : ""))
+            CommandWrapper.action(plugin, lower, (sender, args) -> setGameMode(sender, args, value))
+                    .alias("gm" + lower.charAt(0) + (value == GameMode.SPECTATOR ? "p" : ""))
+                    .alias("gm" + lower)
+                    .alias("gm"+ value.getValue())
                     .permission(permission + "." + lower)
                     .suggestion(CommandRegistry.allPlayers)
                     .register();

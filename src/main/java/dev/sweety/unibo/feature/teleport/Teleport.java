@@ -1,4 +1,4 @@
-package dev.sweety.unibo.feature.essential.teleport;
+package dev.sweety.unibo.feature.teleport;
 
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;

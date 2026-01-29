@@ -14,6 +14,9 @@ public class Stats {
     private int wins, losses;
     private int winStreak, loseStreak;
 
+    @Setter
+    private boolean combat;
+
     public void addWin() {
         this.wins++;
         this.winStreak++;
@@ -41,5 +44,6 @@ public class Stats {
         this.losses = copy.losses;
         this.winStreak = copy.winStreak;
         this.loseStreak = copy.loseStreak;
+        this.combat = copy.combat;
     }
 }

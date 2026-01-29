@@ -1,12 +1,40 @@
-
-
 bot:
   token: "YOUR_BOT_TOKEN"
   channelId: YOUR_CHANNEL_ID
-  discordFormat: "**%s** -> %s"
-  chatFormat: "[Discord] %s -> %s"
+  discordFormat: "```ansi\n%s\n%s\n```"
+  chatFormat: "&7[&9Discord&7] &8%s &f-> %s"
 
 # 📢 Messaggio broadcast globale (es. killstreak, messaggi importanti, etc.)
 broadcast:
   format: '&#F45454ʙ&#F5694Aʀ&#F67F3Fᴏ&#F79435ᴀ&#F8AA2Aᴅ&#F9BF20ᴄ&#FAD415ᴀ&#FBEA0Bs&#FCFF00ᴛ &7%message%'
   console: false
+
+# ⚔️ Sistema di combattimento (anti-logout / cooldown)
+combat:
+  cooldown: 15      # Secondi di combattimento attivo dopo un colpo
+  blacklist: true   # Se true, blocca i comandi mentre sei in combattimento
+  commands:         # Lista comandi bloccati durante il combattimento (solo se blacklist = true)
+    - "spawn"
+    - "arena"
+    - "hub"
+
+# 💬 Configurazione della chat
+chat:
+  hover:
+    enabled: true   # Abilita hover text sulla chat (tipo info aggiuntive)
+    format: 'negro' # Formato del messaggio che compare in hover (puoi personalizzare)
+
+  fallback:
+    first-color: '&7'      # Colore del prefisso
+    second-color: '&8'     # Colore del nome
+    format: '%first-color%%prefix% %second-color%%player% ⇨ %first-color%%message%'
+    # Usato se il gruppo del player non è presente in groups
+
+  groups:                  # Formattazioni per gruppi (es. permission group)
+    default:
+      first-color: '&7'
+      second-color: '&8'
+    admin:
+      first-color: '&c'
+      second-color: '&4'
+      format: '&ᴀᴅᴍɪɴ &4%player% » &f%message%'  # Formato custom per admin

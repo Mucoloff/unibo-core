@@ -2,6 +2,7 @@ package dev.sweety.unibo.api.file;
 
 import dev.sweety.unibo.VanillaCoreAccessors;
 import dev.sweety.unibo.utils.ColorUtils;
+import dev.sweety.unibo.utils.McUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -72,7 +73,7 @@ public class CachedConfig extends YamlConfiguration {
     public Component getComponent(String path) {
         String s = getString(path);
         if (s == null) return Component.empty();
-        return Component.text(s);
+        return McUtils.component(s);
     }
 
     public String getString(@NotNull String path) {

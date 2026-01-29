@@ -4,6 +4,8 @@ import dev.sweety.core.math.MathUtils;
 import dev.sweety.unibo.api.VanillaAPI;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,11 +23,11 @@ import java.util.UUID;
 @UtilityClass
 public class McUtils {
 
-    public static @NotNull Component component(Object o) {
-        return Component.text(ColorUtils.color(o));
+    public static @NotNull TextComponent component(Object o) {
+        return LegacyComponentSerializer.legacySection().deserialize(ColorUtils.color(o));
     }
 
-    public static List<Component> colorList(@NotNull List<String> list) {
+    public static List<TextComponent> colorList(@NotNull List<String> list) {
         return list.stream().map(McUtils::component).toList();
     }
 
@@ -55,7 +57,6 @@ public class McUtils {
     }
 
     public void broadcast(final Component message) {
-
         if (VanillaAPI.config().getBoolean("broadcast.console", false))
             Bukkit.getConsoleSender().sendMessage(message);
         MathUtils.parallel(Bukkit.getOnlinePlayers()).forEach(p -> p.sendMessage(message));

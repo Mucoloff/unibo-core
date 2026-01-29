@@ -68,6 +68,7 @@ public class Spawn {
     public @NotNull Location spawn() {
         String worldName = VanillaAPI.config().getString("spawn.world", "world");
         World world = Bukkit.getWorld(worldName);
+        if (world == null) world = Bukkit.getWorlds().getFirst();
         double x = VanillaAPI.config().getDouble("spawn.x");
         double y = VanillaAPI.config().getDouble("spawn.y");
         double z = VanillaAPI.config().getDouble("spawn.z");

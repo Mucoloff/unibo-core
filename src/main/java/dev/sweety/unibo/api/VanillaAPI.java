@@ -117,7 +117,7 @@ public final class VanillaAPI {
     }
 
     public VanillaPlayer getPlayer(final UUID uuid) {
-        return playerManager().getProfile(uuid);
+        return playerManager().profile(uuid);
     }
 
 
@@ -159,8 +159,8 @@ public final class VanillaAPI {
 
     public void tagCombat(Player player1, Player player2) {
         final PlayerManager manager = playerManager();
-        final VanillaPlayer profile1 = manager.getProfile(player1.getUniqueId());
-        final VanillaPlayer profile2 = manager.getProfile(player2.getUniqueId());
+        final VanillaPlayer profile1 = manager.profile(player1.getUniqueId());
+        final VanillaPlayer profile2 = manager.profile(player2.getUniqueId());
         profile1.tag(profile2);
     }
 }

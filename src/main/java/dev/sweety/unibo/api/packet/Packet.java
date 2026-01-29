@@ -61,7 +61,7 @@ public final class Packet {
             case ACKNOWLEDGE_BLOCK_CHANGES -> new WrapperPlayServerAcknowledgeBlockChanges(send);
             case SOUND_EFFECT -> new WrapperPlayServerSoundEffect(send);
             case ENTITY_SOUND_EFFECT -> new WrapperPlayServerEntitySoundEffect(send);
-            //case DISCONNECT -> new WrapperPlayServerDisconnect(send);
+            case DISCONNECT -> new WrapperPlayServerDisconnect(send);
             case PLAYER_INFO -> new WrapperPlayServerPlayerInfo(send);
             case PLAYER_INFO_UPDATE -> new WrapperPlayServerPlayerInfoUpdate(send);
             case PLAYER_INFO_REMOVE -> new WrapperPlayServerPlayerInfoRemove(send);

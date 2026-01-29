@@ -1,6 +1,7 @@
 package dev.sweety.unibo.feature.discord;
 
 import dev.sweety.unibo.VanillaCore;
+import dev.sweety.unibo.VanillaCoreAccessors;
 import dev.sweety.unibo.utils.McUtils;
 import dev.sweety.unibo.utils.ColorUtils;
 import net.dv8tion.jda.api.JDA;
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+import java.time.Duration;
 import java.util.EnumSet;
 
 public class DiscordBot {
@@ -26,8 +28,6 @@ public class DiscordBot {
     }
 
     public void start() {
-        plugin.instance().getServer().getPluginManager().registerEvents(new ChatEventListener(this::sendDiscordMessage), plugin.instance());
-
         final EnumSet<GatewayIntent> intents = EnumSet.of(
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.MESSAGE_CONTENT
@@ -59,7 +59,16 @@ public class DiscordBot {
     }
 
     public void shutdown() {
-        if (this.jda != null) this.jda.shutdownNow();
+        if (this.jda == null) return;
+        this.jda.shutdown();
+        try {
+            if (!this.jda.awaitShutdown(Duration.ofSeconds(5))) {
+                this.jda.shutdownNow();
+                this.jda.awaitShutdown();
+            }
+        } catch (Exception e){
+            VanillaCoreAccessors.logger().warn("Error while shutting down Discord JDA", e);
+        }
     }
 
 }

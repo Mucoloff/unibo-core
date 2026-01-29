@@ -1,4 +1,4 @@
-package dev.sweety.unibo.feature.essential.teleport;
+package dev.sweety.unibo.feature.teleport;
 
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
@@ -37,7 +37,7 @@ public class TeleportHere extends CommandWrapper {
             if (target != null) {
                 target.teleportAsync(p.getLocation());
                 p.sendMessage(LANGUAGE.getComponent("teleport.here.success")
-                        .replaceText(builder -> builder.matchLiteral("%target%").replacement(Component.text(target.getName()))));
+                        .replaceText(builder -> builder.matchLiteral("%target%").replacement(target.name())));
             } else {
                 p.sendMessage(LANGUAGE.getComponent("teleport.player-not-found")
                         .replaceText(builder -> builder.matchLiteral("%player%").replacement(Component.text(args[0]))));

@@ -2,6 +2,7 @@ package dev.sweety.unibo.player.features;
 
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
+import dev.sweety.core.color.AnsiColor;
 import dev.sweety.core.util.ObjectUtils;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.VanillaAPI;
@@ -9,28 +10,34 @@ import dev.sweety.unibo.api.packet.Packet;
 import dev.sweety.unibo.api.processor.Processor;
 import dev.sweety.unibo.player.VanillaPlayer;
 import dev.sweety.unibo.utils.ColorUtils;
+import dev.sweety.unibo.utils.McUtils;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-
 
 
 public class ChatProcessor extends Processor {
 
     private final FileConfiguration config;
+    private final BiConsumer<String, String> forwardtoDiscord;
 
     public ChatProcessor(VanillaPlayer player, VanillaCore plugin) {
         super(player, plugin);
         this.config = plugin.config();
+        this.forwardtoDiscord = plugin.discordBot()::sendDiscordMessage;
     }
 
     private final WrapperPlayServerSystemChatMessage chatWrap = new WrapperPlayServerSystemChatMessage(false, Component.newline());
@@ -50,6 +57,13 @@ public class ChatProcessor extends Processor {
         ItemStack item = source.getInventory().getItemInMainHand();
         boolean hasItem = !item.getType().isAir();
 
+        this.forwardtoDiscord.accept(
+                AnsiColor.BLUE_BOLD.getColor() +
+                player.name() + AnsiColor.RESET.getColor(),
+                AnsiColor.WHITE_BRIGHT.getColor() +
+                message.replace("[i]", hasItem ? LegacyComponentSerializer.legacySection().serialize(item.displayName().style(Style.style())) : "")
+                        + AnsiColor.RESET.getColor()
+        );
 
         final CachedMetaData metaData = VanillaAPI.luckperms().getPlayerAdapter(Player.class).getMetaData(source);
         @NotNull final String group = ObjectUtils.nullOption(metaData.getPrimaryGroup(), "default");
@@ -60,14 +74,14 @@ public class ChatProcessor extends Processor {
 
         format = applyPlaceholders(source, format, metaData, firstColor, secondColor);
 
-        final TextComponent formatComponent = Component.text(format);
+        final TextComponent formatComponent = McUtils.component(format);
 
         boolean hover = config.getBoolean("chat.hover.enabled", true);
 
         final Component displayedName;
         if (hover) {
             String hoverText = ColorUtils.color(applyPlaceholders(source, config.getString("chat.hover.format", "%lang%"), metaData, firstColor, secondColor));
-            HoverEvent<Component> hoverEvent = HoverEvent.showText(Component.text(hoverText));
+            HoverEvent<Component> hoverEvent = HoverEvent.showText(McUtils.component(hoverText));
             displayedName = source.displayName().hoverEvent(hoverEvent);
         } else displayedName = source.displayName();
 

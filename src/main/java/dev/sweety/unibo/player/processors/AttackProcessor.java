@@ -12,11 +12,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 @Getter
-public class CombatProcessor extends Processor {
+public class AttackProcessor extends Processor {
 
     private final PlayerManager playerManager;
 
-    public CombatProcessor(final VanillaPlayer player, final VanillaCore plugin) {
+    public AttackProcessor(final VanillaPlayer player, final VanillaCore plugin) {
         super(player, plugin);
         this.playerManager = plugin.playerManager();
     }

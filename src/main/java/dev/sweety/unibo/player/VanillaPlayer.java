@@ -1,5 +1,8 @@
 package dev.sweety.unibo.player;
 
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatPreview;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChatPreview;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetDisplayChatPreview;
 import dev.sweety.core.thread.ProfileThread;
 import dev.sweety.core.thread.ThreadManager;
 import dev.sweety.record.annotations.DataIgnore;
@@ -19,21 +22,20 @@ import dev.sweety.unibo.feature.region.Region;
 import dev.sweety.unibo.file.Files;
 import dev.sweety.unibo.player.features.ChatProcessor;
 import dev.sweety.unibo.player.features.CombatLogProcessor;
+import dev.sweety.unibo.player.features.CombatStatus;
 import dev.sweety.unibo.player.features.TpaProcessor;
-import dev.sweety.unibo.player.processors.CombatProcessor;
+import dev.sweety.unibo.player.processors.AttackProcessor;
 import dev.sweety.unibo.player.processors.DamageProcessor;
 import dev.sweety.unibo.player.processors.PositionProcessor;
 import dev.sweety.unibo.player.processors.RegionProcessor;
 import dev.sweety.unibo.utils.McUtils;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RecordData
@@ -46,7 +48,7 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
 
     //util processors
     private final PositionProcessor positionProcessor;
-    private final CombatProcessor combatProcessor;
+    private final AttackProcessor attackProcessor;
     private final DamageProcessor damageProcessor;
 
     //features
@@ -56,12 +58,17 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
     private final TpaProcessor tpaProcessor;
 
     @DataIgnore
+    private final AtomicInteger retainCount = new AtomicInteger(1);
+
+    @DataIgnore
     private final AtomicReference<String> regionName, lastRegionName;
 
     @DataIgnore
-    private final Runnable shutdown;
+    private final Runnable shutdown, removal;
 
     private final Stats stats;
+
+    private CombatStatus combatStatus;
 
     public VanillaPlayer(final Player player, final User user, final VanillaCore plugin) {
         this.entityId = (this.player = player).getEntityId();
@@ -70,15 +77,18 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
         final ThreadManager threadManager = plugin.threadManager();
         this.profileThread = threadManager.getAvailableProfileThread();
         this.shutdown = () -> threadManager.shutdown(profileThread);
+        this.removal = () -> plugin.playerManager().finalizeRemoval(this);
 
         this.stats = Files.PLAYER_ELO.load(player.getUniqueId());
 
         this.positionProcessor = new PositionProcessor(this, plugin);
-        this.combatProcessor = new CombatProcessor(this, plugin);
+        this.attackProcessor = new AttackProcessor(this, plugin);
         this.damageProcessor = new DamageProcessor(this, plugin);
         this.regionProcessor = new RegionProcessor(this, plugin);
         this.chatProcessor = new ChatProcessor(this, plugin);
         this.combatLogProcessor = new CombatLogProcessor(this, plugin);
+
+        this.combatLogProcessor.setEnabled(stats.isCombat());
 
         this.regionName = new AtomicReference<>();
         this.lastRegionName = new AtomicReference<>();
@@ -89,15 +99,22 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
     public void handle(final Packet packet) {
         this.positionProcessor.handle(packet);
         this.regionProcessor.handle(packet);
-        this.combatProcessor.handle(packet);
+        this.attackProcessor.handle(packet);
         this.damageProcessor.handle(packet);
 
         this.chatProcessor.handle(packet);
         this.combatLogProcessor.handle(packet);
     }
 
+    public void retain() {
+        this.retainCount.incrementAndGet();
+    }
+
+    public void release() {
+        if (this.retainCount.decrementAndGet() == 0) this.removal.run();
+    }
+
     public void shutdown() {
-        this.combatLogProcessor.quit();
         this.shutdown.run();
         Files.PLAYER_ELO.save(this);
     }
@@ -145,7 +162,7 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
         this.combatLogProcessor.tag(victim);
     }
 
-    public void clear() {
+    public void removeCombat() {
         this.combatLogProcessor.clear();
     }
 

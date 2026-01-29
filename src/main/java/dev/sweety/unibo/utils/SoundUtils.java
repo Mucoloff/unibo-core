@@ -27,7 +27,7 @@ public class SoundUtils {
         return builder;
     }
 
-    public void playSound(final User user,final  Sound sound) {
+    public void playSound(final User user, final Sound sound) {
         soundWrap.setEntityId(user.getEntityId());
         soundWrap.setSound(sound);
         user.writePacket(soundWrap);

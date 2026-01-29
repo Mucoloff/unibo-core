@@ -29,6 +29,7 @@ public class PlayerElo extends BukkitFile {
         config.set(id + ".losses", stats.getLosses());
         config.set(id + ".winStreak", stats.getWinStreak());
         config.set(id + ".loseStreak", stats.getLoseStreak());
+        config.set(id + ".combat", stats.isCombat());
     }
 
     public Stats load(UUID uuid) {
@@ -39,7 +40,8 @@ public class PlayerElo extends BukkitFile {
                 config.getInt(id + ".wins", 0),
                 config.getInt(id + ".losses", 0),
                 config.getInt(id + ".winStreak", 0),
-                config.getInt(id + ".loseStreak", 0)
+                config.getInt(id + ".loseStreak", 0),
+                config.getBoolean(id + ".combat", true)
         );
     }
 

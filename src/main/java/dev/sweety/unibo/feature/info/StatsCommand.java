@@ -51,7 +51,7 @@ public class StatsCommand extends CommandWrapper {
                 return;
             }
 
-            Stats stats = plugin.playerManager().getProfile(target.getUniqueId()).stats();
+            Stats stats = plugin.playerManager().profile(target.getUniqueId()).stats();
             String value = args[3];
 
             switch (args[0].toLowerCase()) {
@@ -110,7 +110,7 @@ public class StatsCommand extends CommandWrapper {
     }
 
     private void showStats(Player viewer, Player target) {
-        final Stats stats = plugin.playerManager().getProfile(target.getUniqueId()).stats();
+        final Stats stats = plugin.playerManager().profile(target.getUniqueId()).stats();
 
         viewer.sendRichMessage("<gold>"+ target.getName() + "'s Stats");
         viewer.sendRichMessage("<gray>Elo: <white>" + String.format("%.2f",stats.getElo()));
