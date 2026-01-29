@@ -62,6 +62,10 @@ public class McUtils {
         MathUtils.parallel(Bukkit.getOnlinePlayers()).forEach(p -> p.sendMessage(message));
     }
 
+    public static org.bukkit.command.Command getCommand(String name) {
+        return Bukkit.getCommandMap().getCommand(name);
+    }
+
     @UtilityClass
     public class Command {
 

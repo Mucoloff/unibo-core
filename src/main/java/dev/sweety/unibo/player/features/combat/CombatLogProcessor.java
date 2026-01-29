@@ -20,11 +20,13 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -126,9 +128,28 @@ public class CombatLogProcessor extends Processor {
                 if (notCombat()) return;
 
                 boolean blacklist = plugin.config().getBoolean("combat.blacklist", true);
-                boolean inList = plugin.config().getStringList("combat.commands").contains(command);
 
-                if (inList && !blacklist) return;
+                String label = command.split(" ")[0];
+                List<String> commands = plugin.config().getStringList("combat.commands");
+                boolean inList = commands.contains(label);
+
+                if (!inList) {
+                    Command cmd = McUtils.getCommand(label);
+                    if (cmd != null) {
+                        if (commands.contains(cmd.getName())) {
+                            inList = true;
+                        } else {
+                            for (String alias : cmd.getAliases()) {
+                                if (commands.contains(alias)) {
+                                    inList = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (inList != blacklist) return;
 
                 if (self.hasPermission("unibo.staff.combatlog.bypass")) {
                     self.sendRichMessage("<red>combat bypass: \"" + command + "\"");
