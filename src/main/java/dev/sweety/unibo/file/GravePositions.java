@@ -1,6 +1,7 @@
 package dev.sweety.unibo.file;
 
 
+import dev.sweety.core.util.UUIDUtils;
 import dev.sweety.unibo.api.file.BukkitFile;
 import dev.sweety.unibo.feature.grave.Grave;
 import dev.sweety.unibo.feature.grave.GraveListener;
@@ -33,7 +34,11 @@ public class GravePositions extends BukkitFile {
             final String name = grave.name();
 
             config.set(name + ".location", grave.deathLocation().serialize());
+
             config.set(name + ".player.name", grave.playerName());
+            config.set(name + ".player.id", grave.uuid());
+
+            config.set(name + ".time", grave.time());
 
             ItemStack[] contents = grave.inventory().getContents();
 
@@ -42,7 +47,7 @@ public class GravePositions extends BukkitFile {
             for (int i = 0; i < contents.length; i++) {
                 ItemStack item = contents[i];
 
-                if (item != null) config.set(name + ".inventory." + i, item);
+                if (item != null) config.set(name + ".inventory.contents." + i, item);
             }
 
         }
@@ -56,19 +61,21 @@ public class GravePositions extends BukkitFile {
         for (String name : config.getKeys(false)) {
             Location location = Location.deserialize(config.getConfigurationSection(name + ".location").getValues(false));
 
-            ItemStack[] contents = new ItemStack[config.getInt(name + ".inventory.size", 36)];
-            String playerName = config.getString(name + ".player.name", "");
+            int size = config.getInt(name + ".inventory.size", 36);
 
-            if (config.isConfigurationSection(name + ".inventory")) {
-                for (String key : config.getConfigurationSection(name + ".inventory").getKeys(false)) {
+            ItemStack[] contents = new ItemStack[size];
+
+            if (config.isConfigurationSection(name + ".inventory.contents")) {
+                for (String key : config.getConfigurationSection(name + ".inventory.contents").getKeys(false)) {
                     int index = Integer.parseInt(key);
-                    ItemStack item = config.getItemStack(name + ".inventory." + key);
+                    ItemStack item = config.getItemStack(name + ".inventory.contents." + key);
                     contents[index] = item;
                 }
             }
 
-            UUID uuid = UUID.fromString(name.split("#")[0]);
-            long time = Long.parseLong(name.split("#")[1], 16);
+            UUID uuid = UUIDUtils.parseUuid(config.getString(name + ".player.id", ""));
+            String playerName = config.getString(name + ".player.name", "Unknown");
+            long time = config.getLong(name + ".time", -1L);
 
             Inventory inv = Bukkit.createInventory(null, 4 * 9, Component.text(playerName + "' grave"));
 
