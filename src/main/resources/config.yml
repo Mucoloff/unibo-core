@@ -38,3 +38,6 @@ chat:
       first-color: '&c'
       second-color: '&4'
       format: '&ᴀᴅᴍɪɴ &4%player% » &f%message%'  # Formato custom per admin
+
+
+homes-count: 3

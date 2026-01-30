@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.Map;
 import java.util.UUID;
 
-@CommandWrapper.Info(name = "viewinv", permission = "unibo.viewinv")
+@CommandWrapper.Info(name = "viewinv", permission = "unibo.default.viewinv")
 public class ViewInv extends CommandWrapper {
 
     private final Map<UUID, Views> viewInventory;

@@ -15,7 +15,7 @@ public class Spawn {
 
     public void register(final VanillaCore plugin) {
 
-        CommandWrapper.action(plugin, "spawn", (player, args) -> spawn(player)).register();
+        CommandWrapper.action(plugin, "spawn", (player, args) -> spawn(player)).permission("unibo.default.spawn").register();
 
         CommandWrapper.action(plugin, "setspawn", (player, args) -> {
                     Location location = player.getLocation();

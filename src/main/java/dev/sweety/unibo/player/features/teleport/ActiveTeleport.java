@@ -1,9 +1,9 @@
 package dev.sweety.unibo.player.features.teleport;
 
+import dev.sweety.unibo.feature.teleport.tpa.TpaType;
 import dev.sweety.unibo.player.VanillaPlayer;
 import org.bukkit.Location;
 
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 

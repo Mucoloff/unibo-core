@@ -24,7 +24,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
@@ -76,6 +78,19 @@ public class GraveListener implements Listener {
             graves.remove(block);
             Hologram h = holo(grave.holoName());
             if (h != null) h.delete();
+        }
+    }
+
+    @EventHandler
+    public void onCrafting(CraftItemEvent e) {
+        for (ItemStack s : e.getInventory().getMatrix()) {
+            if (s == null) continue;
+            if (!s.hasItemMeta()) continue;
+            ItemMeta meta = s.getItemMeta();
+            if (meta.getPersistentDataContainer().has(key, PersistentDataType.BYTE)) {
+                e.setCancelled(true);
+                return;
+            }
         }
     }
 

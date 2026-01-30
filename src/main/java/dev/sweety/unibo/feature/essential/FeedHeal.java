@@ -29,8 +29,8 @@ public class FeedHeal {
             t.clearActivePotionEffects();
         };
 
-        CommandWrapper.builder(plugin, "heal", ((sender, args) -> execute(sender, args, heal, "heal"))).suggestion(CommandRegistry.allPlayers).register();
-        CommandWrapper.builder(plugin, "feed", ((sender, args) -> execute(sender, args, feed, "feed"))).suggestion(CommandRegistry.allPlayers).register();
+        CommandWrapper.builder(plugin, "heal", ((sender, args) -> execute(sender, args, heal, "heal"))).suggestion(CommandRegistry.allPlayers).permission("unibo.staff.heal").register();
+        CommandWrapper.builder(plugin, "feed", ((sender, args) -> execute(sender, args, feed, "feed"))).suggestion(CommandRegistry.allPlayers).permission("unibo.staff.feed").register();
 
     }
 

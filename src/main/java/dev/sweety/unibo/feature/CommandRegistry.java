@@ -4,12 +4,13 @@ import com.google.common.base.Joiner;
 import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
 import dev.sweety.unibo.feature.essential.*;
+import dev.sweety.unibo.feature.home.HomeCommands;
 import dev.sweety.unibo.feature.info.StatsCommand;
 import dev.sweety.unibo.feature.info.leaderboard.Leaderboard;
 import dev.sweety.unibo.feature.inventory.ViewInv;
 import dev.sweety.unibo.feature.region.command.RegionCommand;
 import dev.sweety.unibo.feature.teleport.*;
-import dev.sweety.unibo.feature.teleport.tpa.TPA;
+import dev.sweety.unibo.feature.teleport.tpa.TpaCommands;
 import dev.sweety.unibo.file.Files;
 import dev.sweety.unibo.player.features.combat.CombatLogProcessor;
 import dev.sweety.unibo.player.features.combat.CombatStatus;
@@ -45,20 +46,25 @@ public class CommandRegistry {
                 inventory.setHelmet(hat);
                 inventory.setItemInMainHand(hand);
             }
-        }).build());
+        }).permission("unibo.default.hat").build());
+
         this.commands.add(CommandWrapper.action(plugin, "reload-" + plugin.name(), (player, args) -> {
             if (!player.hasPermission("unibo.reload")) {
                 player.sendRichMessage("<red>You don't have permission to use this command.");
                 return;
             }
             plugin.instance().reloadConfig();
-            Files.LANGUAGE.reload();
-            Files.PLAYER_ELO.reload();
-            plugin.playerManager().foreachProfile(profile -> profile.reloadStats(Files.PLAYER_ELO::load));
-        }).build());
-        this.commands.add(CommandWrapper.action(plugin, "broadcast", (sender, args) -> McUtils.broadcast(plugin.config().getString("broadcast.format", "&#F45454ʙ&#F5694Aʀ&#F67F3Fᴏ&#F79435ᴀ&#F8AA2Aᴅ&#F9BF20ᴄ&#FAD415ᴀ&#FBEA0Bs&#FCFF00ᴛ &7%message%").replace("%message%", Joiner.on(" ").join(args)))).description("broadcast message").permission("unibo.broadcast").alias("bc").build());
-        this.commands.add(CommandWrapper.action(plugin, "leaderboard", (player, args) -> Leaderboard.Menu.INSTANCE.open(player)).build());
-        this.commands.add(CommandWrapper.action(plugin, "enderchest", (player, args) -> player.openInventory(player.getEnderChest())).description("opens your enderchest").permission("unibo.enderchest").alias("ec").build());
+            Files.reload();
+            plugin.playerManager().foreachProfile(profile -> {
+                profile.reloadStats(Files.PLAYER_STATS::load);
+                profile.reloadHomes(Files.PLAYER_HOMES::load);
+            });
+        }).permission("unibo.staff.reload").build());
+
+        this.commands.add(CommandWrapper.action(plugin, "broadcast", (sender, args) -> McUtils.broadcast(plugin.config().getString("broadcast.format", "&#F45454ʙ&#F5694Aʀ&#F67F3Fᴏ&#F79435ᴀ&#F8AA2Aᴅ&#F9BF20ᴄ&#FAD415ᴀ&#FBEA0Bs&#FCFF00ᴛ &7%message%").replace("%message%", Joiner.on(" ").join(args)))).description("broadcast message").permission("unibo.staff.broadcast").alias("bc").build());
+        this.commands.add(CommandWrapper.action(plugin, "leaderboard", (player, args) -> Leaderboard.Menu.INSTANCE.open(player)).permission("unibo.default.leaderboard").build());
+        this.commands.add(CommandWrapper.action(plugin, "enderchest", (player, args) -> player.openInventory(player.getEnderChest())).description("opens your enderchest").permission("unibo.default.enderchest").alias("ec").build());
+
         this.commands.add(CommandWrapper.action(plugin, "combat", (player, args) -> {
             if (args.length == 0) {
                 CombatStatus status = plugin.playerManager().profile(player.getUniqueId()).combatStatus();
@@ -84,7 +90,7 @@ public class CommandRegistry {
                 suggestions.add("false");
                 suggestions.add("toggle");
             }
-        }).build());
+        }).permission("unibo.default.combat").build());
     }
 
     public void register() {
@@ -92,8 +98,16 @@ public class CommandRegistry {
         Spawn.register(this.plugin);
         FeedHeal.register(this.plugin);
         FlyVanish.register(this.plugin);
-        TPA.register(this.plugin);
-        this.commands.addAll(List.of(new RegionCommand(this.plugin), new ViewInv(this.plugin), new StatsCommand(this.plugin), new Teleport(this.plugin), new TeleportAll(this.plugin), new TeleportHere(this.plugin), new Speed(this.plugin), new Sudo(this.plugin)));
+        TpaCommands.register(this.plugin);
+        HomeCommands.register(this.plugin);
+        this.commands.addAll(List.of(new RegionCommand(this.plugin),
+                new ViewInv(this.plugin),
+                new StatsCommand(this.plugin),
+                new Teleport(this.plugin),
+                new TeleportAll(this.plugin),
+                new TeleportHere(this.plugin),
+                new Speed(this.plugin),
+                new Sudo(this.plugin)));
         this.commands.forEach(CommandWrapper::register);
     }
 }

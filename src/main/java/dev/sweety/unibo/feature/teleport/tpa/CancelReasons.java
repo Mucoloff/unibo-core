@@ -1,4 +1,4 @@
-package dev.sweety.unibo.player.features.teleport;
+package dev.sweety.unibo.feature.teleport.tpa;
 
 import dev.sweety.unibo.file.language.Language;
 

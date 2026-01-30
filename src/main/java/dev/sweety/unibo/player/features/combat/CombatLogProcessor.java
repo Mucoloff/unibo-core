@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,6 +40,7 @@ public class CombatLogProcessor extends Processor {
 
     private final int maxCooldown;
     private final AtomicLong cooldown = new AtomicLong(-1);
+    private final AtomicBoolean combat = new AtomicBoolean(false);
     private final Runnable runnable;
 
     private final AtomicReference<CombatStatus> combatStatus = new AtomicReference<>(CombatStatus.IDLE);
@@ -160,9 +162,7 @@ public class CombatLogProcessor extends Processor {
                 packet.cancel();
             }
 
-            case WrapperPlayServerRespawn wrap -> {
-                this.clear();
-            }
+            case WrapperPlayServerRespawn wrap -> this.clear();
 
             case WrapperPlayServerDeathCombatEvent wrap -> {
                 this.clear();
@@ -236,7 +236,8 @@ public class CombatLogProcessor extends Processor {
             p.sendActionBar(start);
         }
 
-        this.player.combatStatus(CombatStatus.ENGAGED);
+        this.combat.set(true);
+        this.combatStatus.set(CombatStatus.ENGAGED);
 
         final long now = System.currentTimeMillis();
         this.cooldown.set(now);
@@ -253,7 +254,8 @@ public class CombatLogProcessor extends Processor {
         p.sendMessage(end);
         p.sendActionBar(end);
 
-        this.player.combatStatus(CombatStatus.IDLE);
+        this.combat.set(false);
+        this.combatStatus.set(CombatStatus.IDLE);
 
         this.cooldown.set(-1);
         this.cancel();
@@ -269,11 +271,11 @@ public class CombatLogProcessor extends Processor {
     }
 
     public boolean notCombat() {
-        return this.combatStatus.get().equals(CombatStatus.IDLE);
+        return !this.combat.get();
     }
 
     public boolean inCombat() {
-        return this.combatStatus.get().equals(CombatStatus.ENGAGED);
+        return this.combat.get();
     }
 
 }

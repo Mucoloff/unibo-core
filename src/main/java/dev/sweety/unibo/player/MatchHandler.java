@@ -64,7 +64,7 @@ public class MatchHandler {
         winnerStats.updateElo(winnerEloChange);
         loserStats.updateElo(-loserEloChange);
 
-        Files.PLAYER_ELO.save(winnerProfile, loserProfile);
+        Files.PLAYER_STATS.save(winnerProfile, loserProfile);
     }
 
     public void handleDeathMessage(Consumer<Component> consumer, Player victim, VanillaPlayer victimProfile, Component victimDisplay, String victimName, Player killer) {

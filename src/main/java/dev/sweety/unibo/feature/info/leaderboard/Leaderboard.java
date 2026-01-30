@@ -38,7 +38,7 @@ public class Leaderboard {
             String name = player.getName();
             if (name == null) continue;
 
-            Stats stats = Files.PLAYER_ELO.load(player.getUniqueId());
+            Stats stats = Files.PLAYER_STATS.load(player.getUniqueId());
             statsMap.put(name, stats);
         }
 

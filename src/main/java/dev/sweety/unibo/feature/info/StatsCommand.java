@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-@CommandWrapper.Info(name = "stats", description = "View your stats", permission = "unibo.stats")
+@CommandWrapper.Info(name = "stats", description = "View your stats", permission = "unibo.default.stats")
 public class StatsCommand extends CommandWrapper {
 
     private static final String EDIT = "unibo.stats.edit";

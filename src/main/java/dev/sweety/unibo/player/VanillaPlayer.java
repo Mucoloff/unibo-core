@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.google.common.base.Function;
+import dev.sweety.unibo.feature.home.Homes;
 import dev.sweety.unibo.feature.info.Stats;
 import dev.sweety.unibo.feature.region.Region;
 import dev.sweety.unibo.file.Files;
@@ -63,6 +64,7 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
     private final Runnable shutdown, removal;
 
     private final Stats stats;
+    private final Homes homes;
 
     public VanillaPlayer(final Player player, final User user, final VanillaCore plugin) {
         this.entityId = (this.player = player).getEntityId();
@@ -73,7 +75,8 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
         this.shutdown = () -> threadManager.shutdown(profileThread);
         this.removal = () -> plugin.playerManager().finalizeRemoval(this);
 
-        this.stats = Files.PLAYER_ELO.load(player.getUniqueId());
+        this.stats = Files.PLAYER_STATS.load(player.getUniqueId());
+        this.homes = Files.PLAYER_HOMES.load(player.getUniqueId());
 
         this.attackProcessor = new AttackProcessor(this, plugin);
         this.damageProcessor = new DamageProcessor(this, plugin);
@@ -118,7 +121,7 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
 
     public void shutdown() {
         this.shutdown.run();
-        Files.PLAYER_ELO.save(this);
+        Files.PLAYER_STATS.save(this);
     }
 
     public World world() {
@@ -219,6 +222,10 @@ public class VanillaPlayer implements PacketHandler, VanillaPlayerAccessors {
 
     public void reloadStats(Function<UUID, Stats> load) {
         stats.apply(load.apply(player.getUniqueId()));
+    }
+
+    public void reloadHomes(Function<UUID, Homes> load) {
+        homes.apply(load.apply(player.getUniqueId()));
     }
 
     public CombatStatus combatStatus() {

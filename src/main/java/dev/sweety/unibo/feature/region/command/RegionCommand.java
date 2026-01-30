@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@CommandWrapper.Info(name = "region", description = "Region command", permission = "unibo.region.command.region", aliases = {"rg", "regions"})
+@CommandWrapper.Info(name = "region", description = "Region command", permission = "unibo.staff.region.command.region", aliases = {"rg", "regions"})
 public class RegionCommand extends CommandWrapper {
 
     public static Map<UUID, Pair<Location>> LOCATIONS = new HashMap<>();

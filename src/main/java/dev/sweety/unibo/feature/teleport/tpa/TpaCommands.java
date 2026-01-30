@@ -5,10 +5,7 @@ import dev.sweety.unibo.VanillaCore;
 import dev.sweety.unibo.api.command.CommandWrapper;
 import dev.sweety.unibo.file.language.Language;
 import dev.sweety.unibo.player.PlayerManager;
-import dev.sweety.unibo.player.features.teleport.CancelReasons;
 import dev.sweety.unibo.player.features.teleport.TpaProcessor;
-import dev.sweety.unibo.player.features.teleport.TpaResult;
-import dev.sweety.unibo.player.features.teleport.TpaType;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -22,11 +19,12 @@ import java.util.Set;
 import java.util.UUID;
 
 @UtilityClass
-public class TPA {
+public class TpaCommands {
 
     public void register(VanillaCore plugin) {
 
         final PlayerManager playerManager = plugin.playerManager();
+        final String permission = "unibo.default.tpa";
 
         TriConsumer<Player, TpaType, String[]> action = (player, type, args) -> {
             String name = type.name().toLowerCase();
@@ -88,6 +86,7 @@ public class TPA {
                             suggestions.add(p.getName());
                         }
                     })
+                    .permission(permission)
                     .register();
         }
 
@@ -103,7 +102,7 @@ public class TPA {
                 default -> {
                 }
             }
-        }).register();
+        }).permission(permission).register();
 
         final CommandWrapper.Suggestion suggestion = (sender, args, suggestions) -> {
             if (args.length > 1) return;
@@ -155,7 +154,7 @@ public class TPA {
                 case TARGET_NOT_FOUND -> player.sendMessage(Language.TELEPORT_TPA_ACCEPT_TARGET__OFFLINE.component());
                 default -> player.sendMessage(Language.TELEPORT_TPA_ERROR_UNKNOWN.component("%result%", result.name()));
             }
-        }).alias("tpyes").suggestion(suggestion).register();
+        }).alias("tpyes").suggestion(suggestion).permission(permission).register();
 
         CommandWrapper.action(plugin, "tpdeny", (player, args) -> {
             TpaProcessor tpa = playerManager.profile(player).tpaProcessor();
@@ -179,7 +178,7 @@ public class TPA {
                 case NO_REQUEST -> player.sendMessage(Language.TELEPORT_TPA_NO__REQUEST.component());
                 default -> player.sendMessage(Language.TELEPORT_TPA_ERROR_UNKNOWN.component("%result%", result.name()));
             }
-        }).alias("tpno").suggestion(suggestion).register();
+        }).alias("tpno").suggestion(suggestion).permission(permission).register();
 
 
     }
